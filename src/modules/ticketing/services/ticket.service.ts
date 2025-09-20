@@ -1,6 +1,7 @@
 import { Ticket, TicketStatus, MessageClassification, Priority } from '@/shared/types';
 import { SLAService } from './sla.service';
 import { logger } from '@/shared/utils/logger';
+import { inMemoryStore } from '@/shared/database/in-memory-store';
 
 interface CreateTicketInput {
   title: string;
@@ -38,8 +39,9 @@ export class TicketService {
         updatedAt: new Date()
       };
 
-      // TODO: Save to database
-      logger.info('Ticket created', { ticketId: ticket.id, number: ticketNumber });
+      // Save to in-memory store (TODO: Replace with database)
+      inMemoryStore.saveTicket(ticket);
+      logger.info('Ticket created and saved', { ticketId: ticket.id, number: ticketNumber });
 
       return ticket;
     } catch (error) {
@@ -49,13 +51,26 @@ export class TicketService {
   }
 
   async getTickets(query: any): Promise<Ticket[]> {
-    // TODO: Implement database query with filters, pagination, sorting
-    return [];
+    try {
+      const limit = query.limit ? parseInt(query.limit) : 50;
+      const tickets = inMemoryStore.getTickets(limit);
+      logger.info('Retrieved tickets', { count: tickets.length });
+      return tickets;
+    } catch (error) {
+      logger.error('Error getting tickets', { error });
+      throw error;
+    }
   }
 
   async getTicketById(id: string): Promise<Ticket | null> {
-    // TODO: Implement database query
-    return null;
+    try {
+      const ticket = inMemoryStore.getTicket(id);
+      logger.info('Retrieved ticket', { ticketId: id, found: !!ticket });
+      return ticket;
+    } catch (error) {
+      logger.error('Error getting ticket', { error, id });
+      throw error;
+    }
   }
 
   async updateTicket(id: string, updates: Partial<Ticket>): Promise<Ticket> {
@@ -73,8 +88,9 @@ export class TicketService {
         updatedAt: new Date()
       };
 
-      // TODO: Save to database
-      logger.info('Ticket updated', { ticketId: id, updates });
+      // Save to in-memory store (TODO: Replace with database)
+      inMemoryStore.saveTicket(updatedTicket);
+      logger.info('Ticket updated and saved', { ticketId: id, updates });
 
       return updatedTicket;
     } catch (error) {

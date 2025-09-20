@@ -10,4 +10,8 @@ router.get('/templates', reportController.getTemplates);
 router.get('/:id', reportController.getReport);
 router.get('/:id/download', reportController.downloadReport);
 
+// Analytics endpoints
+router.get('/analytics/summary', reportController.getAnalyticsSummary);
+router.get('/analytics/trends', reportController.getTrends);
+
 export { router as reportsRoutes };

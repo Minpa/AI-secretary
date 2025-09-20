@@ -51,6 +51,11 @@ class InMemoryStore {
       .length;
   }
 
+  getTicketByIntakeMessageId(intakeMessageId: string): Ticket | null {
+    return Array.from(this.tickets.values())
+      .find(ticket => ticket.intakeMessageId === intakeMessageId) || null;
+  }
+
   // Clear all data (for testing)
   clear(): void {
     this.messages.clear();

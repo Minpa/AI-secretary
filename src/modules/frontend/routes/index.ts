@@ -8,5 +8,7 @@ const frontendController = new FrontendController();
 router.get('/', frontendController.getHomePage);
 router.get('/dashboard', frontendController.getDashboard);
 router.get('/test', frontendController.getTestPage);
+router.get('/ticket-detail', frontendController.getTicketDetailPage);
+router.get('/reports', frontendController.getReportsPage);
 
 export { router as frontendRoutes };

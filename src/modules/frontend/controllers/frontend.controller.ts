@@ -25,4 +25,20 @@ export class FrontendController {
       next(error);
     }
   };
+
+  getTicketDetailPage = (req: Request, res: Response, next: NextFunction): void => {
+    try {
+      res.sendFile(path.join(process.cwd(), 'public', 'ticket-detail.html'));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getReportsPage = (req: Request, res: Response, next: NextFunction): void => {
+    try {
+      res.sendFile(path.join(process.cwd(), 'public', 'reports.html'));
+    } catch (error) {
+      next(error);
+    }
+  };
 }

@@ -50,4 +50,41 @@ export class ReportController {
       next(error);
     }
   };
+
+  getAnalyticsSummary = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      // TODO: Implement analytics summary with filtering
+      const response: ApiResponse = {
+        success: true,
+        data: {
+          totalMessages: 0,
+          processedMessages: 0,
+          avgProcessingTime: '2.5시간',
+          channelDistribution: {},
+          statusDistribution: {},
+          priorityDistribution: {}
+        }
+      };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getTrends = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      // TODO: Implement trend analysis
+      const response: ApiResponse = {
+        success: true,
+        data: {
+          dailyTrends: [],
+          weeklyTrends: [],
+          monthlyTrends: []
+        }
+      };
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
 }

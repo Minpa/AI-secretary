@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Secretary - 리포트</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="gradient-bg shadow-lg">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="/" class="text-white text-xl font-bold">AI Secretary</a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/" class="text-white hover:text-gray-200 px-3 py-2 rounded-md">홈</a>
+                    <a href="/dashboard" class="text-white hover:text-gray-200 px-3 py-2 rounded-md">대시보드</a>
+                    <a href="/test" class="text-white hover:text-gray-200 px-3 py-2 rounded-md">테스트</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">운영 리포트</h1>
+            <p class="mt-2 text-gray-600">접수 현황 분석 및 통계 리포트</p>
+        </div>
+
+        <!-- Filters -->
+        <div class="bg-white shadow rounded-lg mb-8">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-lg font-medium text-gray-900">필터 설정</h2>
+            </div>
+            <div class="px-6 py-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <!-- Date Range -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">기간 설정</label>
+                        <div class="space-y-2">
+                            <input type="date" id="startDate" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm">
+                            <input type="date" id="endDate" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm">
+                        </div>
+                    </div>
+
+                    <!-- Channel Filter -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">접수 채널</label>
+                        <select id="channelFilter" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm">
+                            <option value="">전체 채널</option>
+                            <option value="sms">📱 SMS</option>
+                            <option value="email">📧 이메일</option>
+                            <option value="web">🌐 웹폼</option>
+                            <option value="call">📞 통화</option>
+                        </select>
+                    </div>
+
+                    <!-- Status Filter -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">처리 상태</label>
+                        <select id="statusFilter" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm">
+                            <option value="">전체 상태</option>
+                            <option value="pending">대기중</option>
+                            <option value="classified">분류완료</option>
+                            <option value="assigned">할당됨</option>
+                            <option value="processed">처리완료</option>
+                        </select>
+                    </div>
+
+                    <!-- Priority Filter -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">우선순위</label>
+                        <select id="priorityFilter" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm">
+                            <option value="">전체 우선순위</option>
+                            <option value="urgent">긴급</option>
+                            <option value="high">높음</option>
+                            <option value="medium">보통</option>
+                            <option value="low">낮음</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="mt-4 flex space-x-2">
+                    <button id="applyFilters" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">
+                        필터 적용
+                    </button>
+                    <button id="resetFilters" class="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700">
+                        초기화
+                    </button>
+                    <button id="exportCSV" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">
+                        CSV 내보내기
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary Statistics -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center">
+                                <span class="text-white text-sm">📨</span>
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">총 접수</dt>
+                                <dd class="text-lg font-medium text-gray-900" id="totalMessages">-</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-green-500 rounded-md flex items-center justify-center">
+                                <span class="text-white text-sm">✅</span>
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">처리완료</dt>
+                                <dd class="text-lg font-medium text-gray-900" id="processedMessages">-</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-yellow-500 rounded-md flex items-center justify-center">
+                                <span class="text-white text-sm">⏳</span>
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">평균 처리시간</dt>
+                                <dd class="text-lg font-medium text-gray-900" id="avgProcessingTime">-</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-red-500 rounded-md flex items-center justify-center">
+                                <span class="text-white text-sm">🎯</span>
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">SLA 준수율</dt>
+                                <dd class="text-lg font-medium text-gray-900" id="slaCompliance">-</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <!-- Channel Distribution -->
+            <div class="bg-white shadow rounded-lg">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">채널별 접수 현황</h3>
+                </div>
+                <div class="p-6">
+                    <canvas id="channelChart" width="400" height="300"></canvas>
+                </div>
+            </div>
+
+            <!-- Status Distribution -->
+            <div class="bg-white shadow rounded-lg">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">상태별 분포</h3>
+                </div>
+                <div class="p-6">
+                    <canvas id="statusChart" width="400" height="300"></canvas>
+                </div>
+            </div>
+
+            <!-- Priority Distribution -->
+            <div class="bg-white shadow rounded-lg">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">우선순위별 분포</h3>
+                </div>
+                <div class="p-6">
+                    <canvas id="priorityChart" width="400" height="300"></canvas>
+                </div>
+            </div>
+
+            <!-- Daily Trend -->
+            <div class="bg-white shadow rounded-lg">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">일별 접수 추이</h3>
+                </div>
+                <div class="p-6">
+                    <canvas id="trendChart" width="400" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed Data Table -->
+        <div class="bg-white shadow rounded-lg">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">상세 데이터</h3>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">접수일시</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">채널</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">내용</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">우선순위</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">상태</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">분류</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dataTable" class="bg-white divide-y divide-gray-200">
+                        <tr>
+                            <td colspan="6" class="px-6 py-4 text-center text-gray-500">데이터를 불러오는 중...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentData = [];
+        let charts = {};
+
+        // Initialize date inputs with default values
+        document.addEventListener('DOMContentLoaded', () => {
+            const today = new Date();
+            const lastWeek = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+            
+            document.getElementById('startDate').value = lastWeek.toISOString().split('T')[0];
+            document.getElementById('endDate').value = today.toISOString().split('T')[0];
+            
+            loadReportData();
+        });
+
+        // Load report data
+        async function loadReportData() {
+            try {
+                // Get filter values
+                const filters = getFilterValues();
+                
+                // Load messages data
+                const messagesResponse = await fetch('/api/intake/messages');
+                const messagesData = await messagesResponse.json();
+                
+                if (messagesData.success) {
+                    currentData = messagesData.data;
+                    
+                    // Apply filters
+                    const filteredData = applyFilters(currentData, filters);
+                    
+                    // Update statistics
+                    updateStatistics(filteredData);
+                    
+                    // Update charts
+                    updateCharts(filteredData);
+                    
+                    // Update table
+                    updateDataTable(filteredData);
+                }
+                
+                // Load SLA data
+                const slaResponse = await fetch('/api/tickets/sla/dashboard');
+                if (slaResponse.ok) {
+                    const slaData = await slaResponse.json();
+                    if (slaData.success) {
+                        document.getElementById('slaCompliance').textContent = (slaData.data.slaPerformance || 0).toFixed(1) + '%';
+                    }
+                }
+                
+            } catch (error) {
+                console.error('Error loading report data:', error);
+            }
+        }
+
+        function getFilterValues() {
+            return {
+                startDate: document.getElementById('startDate').value,
+                endDate: document.getElementById('endDate').value,
+                channel: document.getElementById('channelFilter').value,
+                status: document.getElementById('statusFilter').value,
+                priority: document.getElementById('priorityFilter').value
+            };
+        }
+
+        function applyFilters(data, filters) {
+            return data.filter(item => {
+                const itemDate = new Date(item.createdAt).toISOString().split('T')[0];
+                
+                // Date range filter
+                if (filters.startDate && itemDate < filters.startDate) return false;
+                if (filters.endDate && itemDate > filters.endDate) return false;
+                
+                // Channel filter
+                if (filters.channel && item.channel !== filters.channel) return false;
+                
+                // Status filter
+                if (filters.status && item.status !== filters.status) return false;
+                
+                // Priority filter
+                if (filters.priority && item.priority !== filters.priority) return false;
+                
+                return true;
+            });
+        }
+
+        function updateStatistics(data) {
+            document.getElementById('totalMessages').textContent = data.length;
+            
+            const processedCount = data.filter(item => item.status === 'processed').length;
+            document.getElementById('processedMessages').textContent = processedCount;
+            
+            // Calculate average processing time (placeholder)
+            document.getElementById('avgProcessingTime').textContent = '2.5시간';
+        }
+
+        function updateCharts(data) {
+            updateChannelChart(data);
+            updateStatusChart(data);
+            updatePriorityChart(data);
+            updateTrendChart(data);
+        }
+
+        function updateChannelChart(data) {
+            const channelCounts = {};
+            data.forEach(item => {
+                channelCounts[item.channel] = (channelCounts[item.channel] || 0) + 1;
+            });
+
+            const ctx = document.getElementById('channelChart').getContext('2d');
+            
+            if (charts.channel) {
+                charts.channel.destroy();
+            }
+            
+            charts.channel = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(channelCounts).map(channel => {
+                        const labels = { sms: 'SMS', email: '이메일', web: '웹폼', call: '통화' };
+                        return labels[channel] || channel;
+                    }),
+                    datasets: [{
+                        data: Object.values(channelCounts),
+                        backgroundColor: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+
+        function updateStatusChart(data) {
+            const statusCounts = {};
+            data.forEach(item => {
+                statusCounts[item.status] = (statusCounts[item.status] || 0) + 1;
+            });
+
+            const ctx = document.getElementById('statusChart').getContext('2d');
+            
+            if (charts.status) {
+                charts.status.destroy();
+            }
+            
+            charts.status = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(statusCounts).map(status => {
+                        const labels = { pending: '대기중', classified: '분류완료', assigned: '할당됨', processed: '처리완료' };
+                        return labels[status] || status;
+                    }),
+                    datasets: [{
+                        label: '건수',
+                        data: Object.values(statusCounts),
+                        backgroundColor: '#6366F1'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function updatePriorityChart(data) {
+            const priorityCounts = {};
+            data.forEach(item => {
+                priorityCounts[item.priority] = (priorityCounts[item.priority] || 0) + 1;
+            });
+
+            const ctx = document.getElementById('priorityChart').getContext('2d');
+            
+            if (charts.priority) {
+                charts.priority.destroy();
+            }
+            
+            charts.priority = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(priorityCounts).map(priority => {
+                        const labels = { urgent: '긴급', high: '높음', medium: '보통', low: '낮음' };
+                        return labels[priority] || priority;
+                    }),
+                    datasets: [{
+                        data: Object.values(priorityCounts),
+                        backgroundColor: ['#DC2626', '#F59E0B', '#10B981', '#6B7280']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+
+        function updateTrendChart(data) {
+            // Group data by date
+            const dailyCounts = {};
+            data.forEach(item => {
+                const date = new Date(item.createdAt).toISOString().split('T')[0];
+                dailyCounts[date] = (dailyCounts[date] || 0) + 1;
+            });
+
+            const sortedDates = Object.keys(dailyCounts).sort();
+            const counts = sortedDates.map(date => dailyCounts[date]);
+
+            const ctx = document.getElementById('trendChart').getContext('2d');
+            
+            if (charts.trend) {
+                charts.trend.destroy();
+            }
+            
+            charts.trend = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: sortedDates.map(date => new Date(date).toLocaleDateString('ko-KR')),
+                    datasets: [{
+                        label: '일별 접수',
+                        data: counts,
+                        borderColor: '#8B5CF6',
+                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateDataTable(data) {
+            const tableBody = document.getElementById('dataTable');
+            
+            if (data.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="px-6 py-4 text-center text-gray-500">
+                            필터 조건에 맞는 데이터가 없습니다.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            const channelEmojis = { sms: '📱', email: '📧', web: '🌐', call: '📞' };
+            const priorityColors = {
+                urgent: 'bg-red-100 text-red-800',
+                high: 'bg-orange-100 text-orange-800',
+                medium: 'bg-yellow-100 text-yellow-800',
+                low: 'bg-green-100 text-green-800'
+            };
+            const statusColors = {
+                pending: 'bg-gray-100 text-gray-800',
+                classified: 'bg-blue-100 text-blue-800',
+                assigned: 'bg-purple-100 text-purple-800',
+                processed: 'bg-green-100 text-green-800'
+            };
+            const statusLabels = {
+                pending: '대기중',
+                classified: '분류완료',
+                assigned: '할당됨',
+                processed: '처리완료'
+            };
+
+            tableBody.innerHTML = data.map(item => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        ${new Date(item.createdAt).toLocaleString('ko-KR')}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        ${channelEmojis[item.channel] || '📝'} ${item.channel.toUpperCase()}
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">
+                        ${item.maskedContent || item.content}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${priorityColors[item.priority] || 'bg-gray-100 text-gray-800'}">
+                            ${item.priority}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColors[item.status] || 'bg-gray-100 text-gray-800'}">
+                            ${statusLabels[item.status] || item.status}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        ${item.classification || '-'}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Event listeners
+        document.getElementById('applyFilters').addEventListener('click', loadReportData);
+        
+        document.getElementById('resetFilters').addEventListener('click', () => {
+            document.getElementById('channelFilter').value = '';
+            document.getElementById('statusFilter').value = '';
+            document.getElementById('priorityFilter').value = '';
+            
+            const today = new Date();
+            const lastWeek = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+            document.getElementById('startDate').value = lastWeek.toISOString().split('T')[0];
+            document.getElementById('endDate').value = today.toISOString().split('T')[0];
+            
+            loadReportData();
+        });
+
+        document.getElementById('exportCSV').addEventListener('click', () => {
+            const filters = getFilterValues();
+            const filteredData = applyFilters(currentData, filters);
+            exportToCSV(filteredData);
+        });
+
+        function exportToCSV(data) {
+            const headers = ['접수일시', '채널', '내용', '우선순위', '상태', '분류'];
+            const csvContent = [
+                headers.join(','),
+                ...data.map(item => [
+                    new Date(item.createdAt).toLocaleString('ko-KR'),
+                    item.channel,
+                    `"${(item.maskedContent || item.content).replace(/"/g, '""')}"`,
+                    item.priority,
+                    item.status,
+                    item.classification || ''
+                ].join(','))
+            ].join('\n');
+
+            const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `접수현황_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>

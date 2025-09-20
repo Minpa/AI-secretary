@@ -1,5 +1,6 @@
 import { Priority, MessageClassification, Ticket } from '@/shared/types';
 import { logger } from '@/shared/utils/logger';
+import { inMemoryStore } from '@/shared/database/in-memory-store';
 
 interface SLARule {
   priority: Priority;
@@ -64,12 +65,25 @@ export class SLAService {
 
   async getDashboard(): Promise<SLADashboard> {
     try {
-      // TODO: Implement database queries for SLA metrics
-      const totalTickets = 0;
-      const withinSLA = 0;
-      const violatedSLA = 0;
-      const averageResponseTime = 0;
-      const averageResolutionTime = 0;
+      const totalTickets = inMemoryStore.getTicketCount();
+      const activeTickets = inMemoryStore.getActiveTicketCount();
+      const allTickets = inMemoryStore.getTickets();
+      
+      // Calculate SLA metrics
+      const now = new Date();
+      let violatedSLA = 0;
+      let withinSLA = 0;
+      
+      allTickets.forEach(ticket => {
+        const isViolated = now > ticket.slaDeadline && 
+                          ticket.status !== 'resolved' && 
+                          ticket.status !== 'closed';
+        if (isViolated) {
+          violatedSLA++;
+        } else {
+          withinSLA++;
+        }
+      });
       
       const slaPerformance = totalTickets > 0 ? (withinSLA / totalTickets) * 100 : 100;
 
@@ -77,8 +91,8 @@ export class SLAService {
         totalTickets,
         withinSLA,
         violatedSLA,
-        averageResponseTime,
-        averageResolutionTime,
+        averageResponseTime: 0, // TODO: Calculate from actual data
+        averageResolutionTime: 0, // TODO: Calculate from actual data
         slaPerformance
       };
     } catch (error) {
@@ -89,9 +103,17 @@ export class SLAService {
 
   async getViolations(query: any): Promise<Ticket[]> {
     try {
-      // TODO: Implement database query for SLA violations
-      // Find tickets where current time > slaDeadline and status != resolved/closed
-      return [];
+      const allTickets = inMemoryStore.getTickets();
+      const now = new Date();
+      
+      const violations = allTickets.filter(ticket => {
+        return now > ticket.slaDeadline && 
+               ticket.status !== 'resolved' && 
+               ticket.status !== 'closed';
+      });
+
+      logger.info('Retrieved SLA violations', { count: violations.length });
+      return violations;
     } catch (error) {
       logger.error('Error getting SLA violations', { error });
       throw error;

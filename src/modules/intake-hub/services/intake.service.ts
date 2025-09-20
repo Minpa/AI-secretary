@@ -1,5 +1,6 @@
-import { IntakeMessage, IntakeChannel, IntakeStatus, Priority } from '@/shared/types';
+import { IntakeMessage, IntakeChannel, IntakeStatus, Priority, MessageClassification } from '@/shared/types';
 import { PIIMaskingService } from './pii-masking.service';
+import { TicketIntegrationService } from './ticket-integration.service';
 import { logger } from '@/shared/utils/logger';
 import { inMemoryStore } from '@/shared/database/in-memory-store';
 
@@ -11,9 +12,11 @@ interface CreateMessageInput {
 
 export class IntakeService {
   private piiMaskingService: PIIMaskingService;
+  private ticketIntegrationService: TicketIntegrationService;
 
   constructor() {
     this.piiMaskingService = new PIIMaskingService();
+    this.ticketIntegrationService = new TicketIntegrationService();
   }
 
   async processMessage(input: CreateMessageInput): Promise<IntakeMessage> {
@@ -41,6 +44,33 @@ export class IntakeService {
       // Save to in-memory store (TODO: Replace with database)
       inMemoryStore.saveMessage(message);
       logger.info('Message processed and saved', { messageId: message.id, channel: input.channel });
+
+      // Auto-create ticket for high/urgent priority messages from all channels
+      if (message.priority === Priority.HIGH || message.priority === Priority.URGENT) {
+        try {
+          // Auto-classify high/urgent messages and create tickets
+          message.status = IntakeStatus.CLASSIFIED;
+          message.classification = this.autoClassifyMessage(message.content);
+          inMemoryStore.saveMessage(message); // Update with classification
+          
+          const ticketId = await this.ticketIntegrationService.createTicketFromMessage(message);
+          if (ticketId) {
+            logger.info('Ticket auto-created for high/urgent priority message', { 
+              messageId: message.id, 
+              ticketId,
+              channel: input.channel,
+              priority: message.priority
+            });
+          }
+        } catch (error) {
+          logger.error('Failed to auto-create ticket for high/urgent message', { 
+            error, 
+            messageId: message.id,
+            channel: input.channel 
+          });
+          // Don't fail the message processing if ticket creation fails
+        }
+      }
 
       return message;
     } catch (error) {
@@ -83,11 +113,28 @@ export class IntakeService {
         return null;
       }
 
+      const oldStatus = message.status;
       message.status = status;
       message.updatedAt = new Date();
       inMemoryStore.saveMessage(message);
 
-      logger.info('Message status updated', { messageId: id, status });
+      // Auto-create ticket when message is classified or becomes high/urgent priority
+      if (status === 'classified' && oldStatus !== 'classified') {
+        try {
+          const ticketId = await this.ticketIntegrationService.createTicketFromMessage(message);
+          if (ticketId) {
+            logger.info('Ticket auto-created from classified message', { 
+              messageId: id, 
+              ticketId 
+            });
+          }
+        } catch (error) {
+          logger.error('Failed to auto-create ticket', { error, messageId: id });
+          // Don't fail the status update if ticket creation fails
+        }
+      }
+
+      logger.info('Message status updated', { messageId: id, status, oldStatus });
       return message;
     } catch (error) {
       logger.error('Error updating message status', { error, id, status });
@@ -110,6 +157,45 @@ export class IntakeService {
     }
 
     return Priority.MEDIUM;
+  }
+
+  private autoClassifyMessage(content: string): MessageClassification {
+    const lowerContent = content.toLowerCase();
+
+    // Emergency keywords
+    if (lowerContent.includes('응급') || lowerContent.includes('긴급') || 
+        lowerContent.includes('위험') || lowerContent.includes('화재') || 
+        lowerContent.includes('가스')) {
+      return MessageClassification.EMERGENCY;
+    }
+
+    // Maintenance keywords
+    if (lowerContent.includes('고장') || lowerContent.includes('수리') || 
+        lowerContent.includes('엘리베이터') || lowerContent.includes('문제')) {
+      return MessageClassification.MAINTENANCE;
+    }
+
+    // Noise keywords
+    if (lowerContent.includes('소음') || lowerContent.includes('시끄')) {
+      return MessageClassification.NOISE;
+    }
+
+    // Parking keywords
+    if (lowerContent.includes('주차') || lowerContent.includes('차량')) {
+      return MessageClassification.PARKING;
+    }
+
+    // Billing keywords
+    if (lowerContent.includes('관리비') || lowerContent.includes('요금')) {
+      return MessageClassification.BILLING;
+    }
+
+    // Security keywords
+    if (lowerContent.includes('보안') || lowerContent.includes('출입')) {
+      return MessageClassification.SECURITY;
+    }
+
+    return MessageClassification.INQUIRY; // Default
   }
 
   private generateId(): string {
