@@ -189,4 +189,31 @@ export class IntakeController {
       next(error);
     }
   };
+
+  updateStatus = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+
+      if (!status) {
+        throw new AppError('Status is required', 400);
+      }
+
+      const message = await this.intakeService.updateMessageStatus(id, status);
+
+      if (!message) {
+        throw new AppError('Message not found', 404);
+      }
+
+      const response: ApiResponse = {
+        success: true,
+        data: message,
+        message: 'Message status updated successfully'
+      };
+
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
 }

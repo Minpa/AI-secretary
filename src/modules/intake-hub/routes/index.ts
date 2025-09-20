@@ -14,6 +14,7 @@ router.post('/call', intakeController.handleCall);
 router.get('/messages', intakeController.getMessages);
 router.get('/messages/:id', intakeController.getMessage);
 router.patch('/messages/:id/classify', intakeController.classifyMessage);
+router.patch('/messages/:id/status', intakeController.updateStatus);
 
 // Dashboard stats
 router.get('/stats', intakeController.getStats);

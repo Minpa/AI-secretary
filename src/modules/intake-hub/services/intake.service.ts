@@ -76,6 +76,25 @@ export class IntakeService {
     return inMemoryStore.getMessageCount();
   }
 
+  async updateMessageStatus(id: string, status: IntakeStatus): Promise<IntakeMessage | null> {
+    try {
+      const message = inMemoryStore.getMessage(id);
+      if (!message) {
+        return null;
+      }
+
+      message.status = status;
+      message.updatedAt = new Date();
+      inMemoryStore.saveMessage(message);
+
+      logger.info('Message status updated', { messageId: id, status });
+      return message;
+    } catch (error) {
+      logger.error('Error updating message status', { error, id, status });
+      throw error;
+    }
+  }
+
   private determinePriority(channel: IntakeChannel, content: string): Priority {
     const urgentKeywords = ['응급', '긴급', '위험', '화재', '가스', '누수'];
     const highKeywords = ['소음', '민원', '고장', '문제'];
