@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Secretary - 리포트</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/wordcloud2.js/1.2.2/wordcloud2.min.js"></script>
     <style>
         .gradient-bg {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -87,7 +88,13 @@
                         </select>
                     </div>
                 </div>
-                <div class="mt-4 flex space-x-2">
+                <div class="mt-4 flex flex-wrap gap-2 items-center">
+                    <button id="loadData" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 font-medium">
+                        📊 데이터 로드
+                    </button>
+                    <span id="dataStatus" class="text-sm text-gray-500 hidden">
+                        ⏳ 데이터 로딩 중...
+                    </span>
                     <button id="applyFilters" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">
                         필터 적용
                     </button>
@@ -96,6 +103,12 @@
                     </button>
                     <button id="exportCSV" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">
                         CSV 내보내기
+                    </button>
+                    <button id="testWordCloud" class="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700">
+                        🔤 워드클라우드 테스트
+                    </button>
+                    <button id="debugLibraries" class="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700">
+                        라이브러리 상태 확인
                     </button>
                 </div>
             </div>
@@ -176,6 +189,37 @@
             </div>
         </div>
 
+        <!-- Word Cloud -->
+        <div class="bg-white shadow rounded-lg mb-8">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">주요 키워드 분석</h3>
+                <p class="text-sm text-gray-500 mt-1">접수된 요청에서 가장 자주 언급되는 키워드들</p>
+            </div>
+            <div class="p-6">
+                <div class="flex justify-center">
+                    <canvas id="wordCloud" width="800" height="400" style="max-width: 100%; height: 400px;"></canvas>
+                </div>
+                <div class="mt-4 text-center">
+                    <div id="wordCloudStats" class="text-sm text-gray-600"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Insights -->
+        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg mb-8">
+            <div class="px-6 py-4 border-b border-blue-200">
+                <h3 class="text-lg font-medium text-blue-900 flex items-center">
+                    🤖 AI 인사이트
+                    <span class="ml-2 text-sm font-normal text-blue-600">키워드 분석 기반 자동 생성</span>
+                </h3>
+            </div>
+            <div class="p-6">
+                <div id="aiInsights" class="space-y-3">
+                    <div class="text-center text-blue-600">키워드를 분석하여 인사이트를 생성하는 중...</div>
+                </div>
+            </div>
+        </div>
+
         <!-- Charts -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
             <!-- Channel Distribution -->
@@ -219,6 +263,35 @@
             </div>
         </div>
 
+        <!-- Keyword Analysis -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <!-- Top Keywords -->
+            <div class="bg-white shadow rounded-lg">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">상위 키워드 순위</h3>
+                    <p class="text-sm text-gray-500 mt-1">가장 자주 언급되는 키워드 TOP 10</p>
+                </div>
+                <div class="p-6">
+                    <div id="topKeywords" class="space-y-3">
+                        <div class="text-center text-gray-500">데이터를 분석하는 중...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Category Keywords -->
+            <div class="bg-white shadow rounded-lg">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">카테고리별 주요 키워드</h3>
+                    <p class="text-sm text-gray-500 mt-1">분야별 자주 언급되는 키워드</p>
+                </div>
+                <div class="p-6">
+                    <div id="categoryKeywords" class="space-y-4">
+                        <div class="text-center text-gray-500">데이터를 분석하는 중...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Detailed Data Table -->
         <div class="bg-white shadow rounded-lg">
             <div class="px-6 py-4 border-b border-gray-200">
@@ -249,42 +322,137 @@
     <script>
         let currentData = [];
         let charts = {};
+        let wordCloudInstance = null;
+
+        // Wait for libraries to load
+        function waitForLibraries() {
+            return new Promise((resolve, reject) => {
+                let attempts = 0;
+                const maxAttempts = 50; // 5 seconds max wait time
+                
+                const checkLibraries = () => {
+                    attempts++;
+                    const chartReady = typeof Chart !== 'undefined';
+                    const wordCloudReady = typeof WordCloud !== 'undefined';
+                    
+                    console.log(`📚 Attempt ${attempts}: Chart.js available:`, chartReady, ', WordCloud available:', wordCloudReady);
+                    
+                    if (chartReady && wordCloudReady) {
+                        console.log('✅ All libraries loaded successfully');
+                        resolve();
+                    } else if (attempts >= maxAttempts) {
+                        console.log('⏰ Timeout waiting for libraries');
+                        reject(new Error('Timeout waiting for libraries to load'));
+                    } else {
+                        setTimeout(checkLibraries, 100);
+                    }
+                };
+                checkLibraries();
+            });
+        }
 
         // Initialize date inputs with default values
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('🚀 Reports page loaded');
+            
             const today = new Date();
             const lastWeek = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
             
             document.getElementById('startDate').value = lastWeek.toISOString().split('T')[0];
             document.getElementById('endDate').value = today.toISOString().split('T')[0];
             
-            loadReportData();
+            // Wait for libraries to load before initializing
+            try {
+                await waitForLibraries();
+                loadReportData();
+            } catch (error) {
+                console.error('❌ Error loading libraries:', error);
+                console.log('🔄 Loading data anyway with fallback displays');
+                
+                // Show error message to user but still load data
+                const wordCloudCanvas = document.getElementById('wordCloud');
+                const ctx = wordCloudCanvas.getContext('2d');
+                ctx.fillStyle = '#EF4444';
+                ctx.font = '16px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('라이브러리 로딩 실패 - 기본 표시 사용', wordCloudCanvas.width / 2, wordCloudCanvas.height / 2);
+                
+                // Still load the data for statistics and table
+                loadReportData();
+            }
         });
 
         // Load report data
         async function loadReportData() {
             try {
+                console.log('🚀 Loading report data...');
+                
+                // Show loading status
+                const statusEl = document.getElementById('dataStatus');
+                statusEl.textContent = '⏳ 데이터 로딩 중...';
+                statusEl.className = 'text-sm text-blue-600';
+                statusEl.classList.remove('hidden');
+                
                 // Get filter values
                 const filters = getFilterValues();
+                console.log('🔍 Filters:', filters);
                 
-                // Load messages data
-                const messagesResponse = await fetch('/api/intake/messages');
+                // Load messages data (request more messages for better analysis)
+                const messagesResponse = await fetch('/api/intake/messages?limit=1000');
+                console.log('📡 Messages response status:', messagesResponse.status);
+                
                 const messagesData = await messagesResponse.json();
+                console.log('📊 Messages data:', messagesData);
                 
                 if (messagesData.success) {
                     currentData = messagesData.data;
+                    console.log('✅ Loaded', currentData.length, 'messages');
                     
                     // Apply filters
                     const filteredData = applyFilters(currentData, filters);
+                    console.log('🔍 Filtered to', filteredData.length, 'messages');
                     
                     // Update statistics
-                    updateStatistics(filteredData);
+                    try {
+                        updateStatistics(filteredData);
+                        console.log('✅ Statistics updated');
+                    } catch (error) {
+                        console.error('❌ Error updating statistics:', error);
+                    }
                     
                     // Update charts
-                    updateCharts(filteredData);
+                    try {
+                        updateCharts(filteredData);
+                        console.log('✅ Charts updated');
+                    } catch (error) {
+                        console.error('❌ Error updating charts:', error);
+                    }
+                    
+                    // Update word cloud
+                    try {
+                        updateWordCloud(filteredData);
+                        console.log('✅ Word cloud updated');
+                    } catch (error) {
+                        console.error('❌ Error updating word cloud:', error);
+                    }
                     
                     // Update table
-                    updateDataTable(filteredData);
+                    try {
+                        updateDataTable(filteredData);
+                        console.log('✅ Data table updated');
+                    } catch (error) {
+                        console.error('❌ Error updating data table:', error);
+                    }
+                    
+                    // Show success status
+                    const statusEl = document.getElementById('dataStatus');
+                    statusEl.textContent = `✅ ${filteredData.length}개 메시지 로드 완료`;
+                    statusEl.className = 'text-sm text-green-600';
+                } else {
+                    console.error('❌ Failed to load messages:', messagesData);
+                    const statusEl = document.getElementById('dataStatus');
+                    statusEl.textContent = '❌ 데이터 로드 실패';
+                    statusEl.className = 'text-sm text-red-600';
                 }
                 
                 // Load SLA data
@@ -298,6 +466,9 @@
                 
             } catch (error) {
                 console.error('Error loading report data:', error);
+                const statusEl = document.getElementById('dataStatus');
+                statusEl.textContent = '❌ 로딩 중 오류 발생';
+                statusEl.className = 'text-sm text-red-600';
             }
         }
 
@@ -343,13 +514,660 @@
         }
 
         function updateCharts(data) {
-            updateChannelChart(data);
-            updateStatusChart(data);
-            updatePriorityChart(data);
-            updateTrendChart(data);
+            if (typeof Chart !== 'undefined') {
+                console.log('📊 Using Chart.js for charts');
+                updateChannelChart(data);
+                updateStatusChart(data);
+                updatePriorityChart(data);
+                updateTrendChart(data);
+            } else {
+                console.log('📊 Using fallback charts (Chart.js not available)');
+                updateFallbackCharts(data);
+            }
+        }
+        
+        function updateFallbackCharts(data) {
+            // Create simple HTML-based charts as fallback
+            updateFallbackChannelChart(data);
+            updateFallbackStatusChart(data);
+            updateFallbackPriorityChart(data);
+            updateFallbackTrendChart(data);
+        }
+        
+        function updateFallbackChannelChart(data) {
+            const channelCounts = {};
+            data.forEach(item => {
+                channelCounts[item.channel] = (channelCounts[item.channel] || 0) + 1;
+            });
+            
+            const canvas = document.getElementById('channelChart');
+            const container = canvas.parentElement;
+            
+            // Replace canvas with HTML chart
+            container.innerHTML = `
+                <div class="space-y-3">
+                    ${Object.entries(channelCounts).map(([channel, count]) => {
+                        const percentage = (count / data.length * 100).toFixed(1);
+                        const channelNames = { sms: 'SMS', email: '이메일', web: '웹폼', call: '통화' };
+                        const colors = { sms: 'bg-blue-500', email: 'bg-green-500', web: 'bg-yellow-500', call: 'bg-red-500' };
+                        return `
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm font-medium">${channelNames[channel] || channel}</span>
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-32 bg-gray-200 rounded-full h-2">
+                                        <div class="${colors[channel] || 'bg-gray-500'} h-2 rounded-full" style="width: ${percentage}%"></div>
+                                    </div>
+                                    <span class="text-sm text-gray-600">${count}건 (${percentage}%)</span>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
+        
+        function updateFallbackStatusChart(data) {
+            const statusCounts = {};
+            data.forEach(item => {
+                statusCounts[item.status] = (statusCounts[item.status] || 0) + 1;
+            });
+            
+            const canvas = document.getElementById('statusChart');
+            const container = canvas.parentElement;
+            const statusLabels = { pending: '대기중', classified: '분류완료', assigned: '할당됨', processed: '처리완료' };
+            const statusColors = { pending: 'bg-gray-500', classified: 'bg-blue-500', assigned: 'bg-purple-500', processed: 'bg-green-500' };
+            
+            container.innerHTML = `
+                <div class="space-y-3">
+                    ${Object.entries(statusCounts).map(([status, count]) => {
+                        const percentage = (count / data.length * 100).toFixed(1);
+                        return `
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm font-medium">${statusLabels[status] || status}</span>
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-32 bg-gray-200 rounded-full h-2">
+                                        <div class="${statusColors[status] || 'bg-gray-500'} h-2 rounded-full" style="width: ${percentage}%"></div>
+                                    </div>
+                                    <span class="text-sm text-gray-600">${count}건 (${percentage}%)</span>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
+        
+        function updateFallbackPriorityChart(data) {
+            const priorityCounts = {};
+            data.forEach(item => {
+                priorityCounts[item.priority] = (priorityCounts[item.priority] || 0) + 1;
+            });
+            
+            const canvas = document.getElementById('priorityChart');
+            const container = canvas.parentElement;
+            const priorityLabels = { urgent: '긴급', high: '높음', medium: '보통', low: '낮음' };
+            const priorityColors = { urgent: 'bg-red-500', high: 'bg-orange-500', medium: 'bg-yellow-500', low: 'bg-green-500' };
+            
+            container.innerHTML = `
+                <div class="space-y-3">
+                    ${Object.entries(priorityCounts).map(([priority, count]) => {
+                        const percentage = (count / data.length * 100).toFixed(1);
+                        return `
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm font-medium">${priorityLabels[priority] || priority}</span>
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-32 bg-gray-200 rounded-full h-2">
+                                        <div class="${priorityColors[priority] || 'bg-gray-500'} h-2 rounded-full" style="width: ${percentage}%"></div>
+                                    </div>
+                                    <span class="text-sm text-gray-600">${count}건 (${percentage}%)</span>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
+        
+        function updateFallbackTrendChart(data) {
+            const dailyCounts = {};
+            data.forEach(item => {
+                const date = new Date(item.createdAt).toISOString().split('T')[0];
+                dailyCounts[date] = (dailyCounts[date] || 0) + 1;
+            });
+            
+            const canvas = document.getElementById('trendChart');
+            const container = canvas.parentElement;
+            const sortedDates = Object.keys(dailyCounts).sort().slice(-7); // Last 7 days
+            const maxCount = Math.max(...Object.values(dailyCounts));
+            
+            container.innerHTML = `
+                <div class="space-y-2">
+                    ${sortedDates.map(date => {
+                        const count = dailyCounts[date] || 0;
+                        const percentage = maxCount > 0 ? (count / maxCount * 100) : 0;
+                        const dateStr = new Date(date).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' });
+                        return `
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm font-medium">${dateStr}</span>
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-32 bg-gray-200 rounded-full h-2">
+                                        <div class="bg-purple-500 h-2 rounded-full" style="width: ${percentage}%"></div>
+                                    </div>
+                                    <span class="text-sm text-gray-600">${count}건</span>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
+
+        function updateWordCloud(data) {
+            console.log('🔍 Updating word cloud with data:', data.length, 'messages');
+            
+            // Extract keywords from content and classification categories
+            const keywordFrequency = {};
+            
+            data.forEach(item => {
+                // Add classification category as a keyword
+                if (item.classification) {
+                    const categoryNames = {
+                        'billing': '관리비',
+                        'maintenance': '수리',
+                        'parking': '주차',
+                        'noise': '소음',
+                        'inquiry': '문의',
+                        'complaint': '민원',
+                        'facility': '시설',
+                        'security': '보안'
+                    };
+                    const categoryKeyword = categoryNames[item.classification] || item.classification;
+                    keywordFrequency[categoryKeyword] = (keywordFrequency[categoryKeyword] || 0) + 3; // Weight categories higher
+                }
+                
+                // Extract meaningful Korean keywords from content
+                const content = item.content || item.maskedContent; // Use original content for better keyword extraction
+                const keywords = extractKoreanKeywords(content);
+                keywords.forEach(keyword => {
+                    keywordFrequency[keyword] = (keywordFrequency[keyword] || 0) + 1;
+                });
+            });
+            
+            console.log('📊 Keyword frequency:', Object.keys(keywordFrequency).length, 'unique keywords');
+            console.log('🔍 Top keywords:', Object.entries(keywordFrequency).sort((a, b) => b[1] - a[1]).slice(0, 10));
+            
+            // Convert to word cloud format
+            const wordCloudData = Object.entries(keywordFrequency)
+                .filter(([keyword, count]) => count >= 1 && keyword.length >= 2) // Show meaningful keywords
+                .sort((a, b) => b[1] - a[1]) // Sort by frequency
+                .slice(0, 25) // Top 25 keywords
+                .map(([keyword, count]) => [keyword, Math.max(count * 12, 10)]); // Scale for better visualization
+
+            console.log('☁️ Word cloud data:', wordCloudData.length, 'keywords:', wordCloudData.slice(0, 10));
+
+            // Clear previous word cloud
+            const canvas = document.getElementById('wordCloud');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (wordCloudData.length === 0) {
+                ctx.fillStyle = '#9CA3AF';
+                ctx.font = '16px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('분석할 데이터가 충분하지 않습니다', canvas.width / 2, canvas.height / 2);
+                console.log('⚠️ No word cloud data to display');
+                return;
+            }
+
+            // Check if WordCloud is available
+            if (typeof WordCloud === 'undefined') {
+                console.error('❌ WordCloud library not loaded');
+                ctx.fillStyle = '#EF4444';
+                ctx.font = '16px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('워드클라우드 라이브러리 로딩 실패', canvas.width / 2, canvas.height / 2);
+                return;
+            }
+
+            console.log('✅ Generating word cloud...');
+            
+            // Generate word cloud
+            try {
+                WordCloud(canvas, {
+                    list: wordCloudData,
+                    gridSize: Math.round(16 * canvas.width / 1024),
+                    weightFactor: function (size) {
+                        return Math.pow(size, 0.8) * canvas.width / 1024;
+                    },
+                    fontFamily: 'Noto Sans KR, Arial, sans-serif',
+                    color: function () {
+                        const colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4'];
+                        return colors[Math.floor(Math.random() * colors.length)];
+                    },
+                    rotateRatio: 0.3,
+                    backgroundColor: '#FFFFFF',
+                    minSize: 12,
+                    drawOutOfBound: false
+                });
+                console.log('✅ Word cloud generated successfully');
+            } catch (error) {
+                console.error('❌ Error generating word cloud:', error);
+                console.log('🔄 Falling back to simple text display');
+                drawSimpleWordCloud(canvas, wordCloudData);
+            }
+
+            // Update stats
+            const statsDiv = document.getElementById('wordCloudStats');
+            const totalWords = Object.keys(wordFrequency).length;
+            const totalMentions = Object.values(wordFrequency).reduce((sum, count) => sum + count, 0);
+            const topWord = wordCloudData[0];
+            
+            statsDiv.innerHTML = `
+                <div class="flex justify-center space-x-6 text-sm">
+                    <span>총 키워드: <strong>${totalWords}개</strong></span>
+                    <span>총 언급: <strong>${totalMentions}회</strong></span>
+                    ${topWord ? `<span>최다 언급: <strong>"${topWord[0]}" (${Math.round(topWord[1]/10)}회)</strong></span>` : ''}
+                </div>
+            `;
+
+            // Update top keywords section
+            updateTopKeywords(wordFrequency);
+        }
+
+        function extractKoreanKeywords(text) {
+            // Extract meaningful Korean apartment management keywords
+            const apartmentKeywords = [
+                // Facilities
+                '엘리베이터', '승강기', '주차장', '주차', '택배보관함', '택배함', '우편함', 
+                '관리사무소', '경비실', '로비', '복도', '계단', '옥상', '지하실', '창고',
+                
+                // Utilities & Systems  
+                '난방', '냉방', '에어컨', '보일러', '온수', '냉수', '수도', '전기', '가스',
+                '인터넷', '케이블', '전화', '인터폰', '방송', '조명', '환기', '정전', '복구',
+                
+                // Maintenance Issues
+                '고장', '수리', '점검', '교체', '청소', '정비', '보수', '누수', '막힘',
+                '소음', '진동', '냄새', '곰팡이', '습기', '균열', '파손', '방음',
+                
+                // Services & Fees
+                '관리비', '공과금', '수도요금', '전기요금', '가스요금', '주차비', '영수증', '재발급',
+                '청소비', '보안비', '수선충당금', '장기수선충당금', '할인', '요금', '월정액',
+                
+                // Security & Safety
+                '보안', '방범', 'CCTV', '출입', '출입문', '비밀번호', '카드키', 
+                '화재', '소방', '비상구', '안전', '사고', '도난',
+                
+                // Community & Rules
+                '민원', '분리수거', '쓰레기', '재활용', '반려동물', '애완동물',
+                '흡연', '금연', '주민', '입주민', '이사', '입주', '퇴거', '커뮤니티', '활동', '참여',
+                '불법주차', '금연구역', '온도조절',
+                
+                // Common Issues
+                '문의', '신고', '요청', '건의', '불만', '개선', '해결', '처리',
+                '확인', '점검', '조치', '대응', '안내', '공지', '추천', '업체'
+            ];
+            
+            const foundKeywords = [];
+            
+            // Find exact matches for apartment keywords
+            apartmentKeywords.forEach(keyword => {
+                if (text.includes(keyword)) {
+                    foundKeywords.push(keyword);
+                }
+            });
+            
+            // Extract compound Korean words (2-4 characters)
+            const koreanWords = text.match(/[가-힣]{2,4}/g) || [];
+            const stopwords = new Set([
+                '이것', '그것', '저것', '여기', '거기', '저기', '때문', '위해', '통해', '대해', '관해',
+                '있나요', '습니다', '입니다', '합니다', '됩니다', '해주세요', '부탁드려요', '감사합니다',
+                '안녕하세요', '죄송합니다', '실례합니다', '확인해주세요', '알려주세요', '도와주세요',
+                '언제', '어디', '얼마', '어떻게', '무엇', '누구', '왜', '어느', '몇개', '몇명'
+            ]);
+            
+            koreanWords.forEach(word => {
+                if (word.length >= 2 && 
+                    !foundKeywords.includes(word) && 
+                    !stopwords.has(word) &&
+                    !/^[0-9]+$/.test(word)) { // Exclude pure numbers
+                    foundKeywords.push(word);
+                }
+            });
+            
+            return [...new Set(foundKeywords)]; // Remove duplicates
+        }
+
+        function analyzeWordFrequency(text) {
+            console.log('🔍 Analyzing text of length:', text.length);
+            
+            // Korean text processing
+            const frequency = {};
+            
+            // Remove special characters and normalize
+            const cleanText = text
+                .replace(/[^\w\s가-힣]/g, ' ')
+                .replace(/\s+/g, ' ')
+                .toLowerCase()
+                .trim();
+
+            console.log('🧹 Clean text length:', cleanText.length);
+
+            // Split into words
+            const words = cleanText.split(' ');
+            console.log('📝 Total words:', words.length);
+            
+            // Korean stopwords and common words to filter out
+            const stopwords = new Set([
+                '이', '그', '저', '것', '수', '있', '없', '하', '되', '된', '될', '는', '은', '이', '가', '을', '를', 
+                '에', '에서', '로', '으로', '와', '과', '도', '만', '까지', '부터', '보다', '처럼', '같이', '함께',
+                '그리고', '그런데', '하지만', '그러나', '또한', '또', '및', '등', '즉', '예를들어',
+                '있습니다', '습니다', '입니다', '합니다', '됩니다', '니다', '세요', '요', '네요', '어요',
+                '때문', '위해', '통해', '대해', '관해', '따라', '의해', '에게', '한테', '께', '에서',
+                '년', '월', '일', '시', '분', '초', '오전', '오후', '아침', '점심', '저녁', '밤',
+                '층', '호', '동', '번', '개', '명', '분', '시간', '날', '주', '달',
+                '안녕하세요', '감사합니다', '죄송합니다', '실례합니다', '부탁드립니다', '확인', '문의', '신고'
+            ]);
+
+            // Count word frequency
+            words.forEach(word => {
+                if (word.length >= 2 && !stopwords.has(word) && !/^\d+$/.test(word)) {
+                    frequency[word] = (frequency[word] || 0) + 1;
+                }
+            });
+
+            // Filter out very rare words (appear only once) unless they're important keywords
+            const importantKeywords = new Set([
+                '엘리베이터', '주차', '소음', '관리비', '보안', '출입', '화재', '가스', '누수', '고장', '수리',
+                '청소', '쓰레기', '분리수거', '택배', '방문', '공사', '시설', '전기', '수도', '난방',
+                '에어컨', '인터넷', '전화', '도어락', 'cctv', '방범', '순찰', '민원', '불만', '개선'
+            ]);
+
+            const filteredFrequency = {};
+            Object.entries(frequency).forEach(([word, count]) => {
+                if (count > 1 || importantKeywords.has(word)) {
+                    filteredFrequency[word] = count;
+                }
+            });
+
+            return filteredFrequency;
+        }
+
+        function drawSimpleWordCloud(canvas, wordCloudData) {
+            const ctx = canvas.getContext('2d');
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw background
+            ctx.fillStyle = '#F9FAFB';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            const colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4'];
+            let currentY = 50;
+            let currentX = 50;
+            const maxWidth = canvas.width - 100;
+            
+            wordCloudData.forEach(([word, size], index) => {
+                const fontSize = Math.max(12, Math.min(48, size / 10));
+                ctx.font = `${fontSize}px Noto Sans KR, Arial, sans-serif`;
+                ctx.fillStyle = colors[index % colors.length];
+                
+                const textWidth = ctx.measureText(word).width;
+                
+                // Check if word fits on current line
+                if (currentX + textWidth > maxWidth) {
+                    currentX = 50;
+                    currentY += fontSize + 10;
+                }
+                
+                // Don't draw if we're out of canvas bounds
+                if (currentY > canvas.height - 50) return;
+                
+                ctx.fillText(word, currentX, currentY);
+                currentX += textWidth + 20;
+            });
+            
+            // Add title
+            ctx.font = '16px Arial';
+            ctx.fillStyle = '#6B7280';
+            ctx.textAlign = 'center';
+            ctx.fillText('주요 키워드 (간단 표시)', centerX, 25);
+            ctx.textAlign = 'left';
+        }
+
+        function updateTopKeywords(wordFrequency) {
+            const topKeywordsDiv = document.getElementById('topKeywords');
+            
+            const sortedKeywords = Object.entries(wordFrequency)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 10);
+
+            if (sortedKeywords.length === 0) {
+                topKeywordsDiv.innerHTML = '<div class="text-center text-gray-500 col-span-full">분석할 키워드가 없습니다.</div>';
+                return;
+            }
+
+            const maxCount = sortedKeywords[0][1];
+            
+            topKeywordsDiv.innerHTML = sortedKeywords.map(([keyword, count], index) => {
+                const percentage = (count / maxCount) * 100;
+                
+                return `
+                    <div class="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors">
+                        <div class="flex items-center space-x-3">
+                            <div class="flex-shrink-0 w-8 h-8 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-sm font-bold">
+                                ${index + 1}
+                            </div>
+                            <div>
+                                <div class="font-medium text-gray-900">${keyword}</div>
+                                <div class="text-sm text-gray-500">${count}회 언급</div>
+                            </div>
+                        </div>
+                        <div class="flex-shrink-0 w-20">
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-indigo-500 h-2 rounded-full transition-all duration-500" style="width: ${percentage}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Update category keywords
+            updateCategoryKeywords(wordFrequency);
+            
+            // Generate AI insights
+            generateAIInsights(wordFrequency, data);
+        }
+
+        function updateCategoryKeywords(wordFrequency) {
+            const categoryKeywordsDiv = document.getElementById('categoryKeywords');
+            
+            // Define keyword categories
+            const categories = {
+                '시설관리': ['엘리베이터', '고장', '수리', '전기', '수도', '난방', '에어컨', '시설', '공사', '청소'],
+                '소음': ['소음', '시끄', '층간소음', '윗집', '아래집', '밤', '새벽', '음악', '발소리'],
+                '주차': ['주차', '차량', '주차장', '주차위반', '불법주차', '주차공간', '자동차', '오토바이'],
+                '관리비': ['관리비', '요금', '청구서', '납부', '연체', '할인', '요금표', '계산서'],
+                '보안': ['보안', '출입', '도어락', '키', '분실', 'cctv', '방범', '순찰', '안전'],
+                '생활편의': ['택배', '방문', '쓰레기', '분리수거', '인터넷', '전화', '방송', '공지']
+            };
+
+            const categoryStats = {};
+            
+            // Calculate category statistics
+            Object.entries(categories).forEach(([category, keywords]) => {
+                let totalCount = 0;
+                const foundKeywords = [];
+                
+                keywords.forEach(keyword => {
+                    if (wordFrequency[keyword]) {
+                        totalCount += wordFrequency[keyword];
+                        foundKeywords.push({ keyword, count: wordFrequency[keyword] });
+                    }
+                });
+                
+                if (totalCount > 0) {
+                    categoryStats[category] = {
+                        totalCount,
+                        keywords: foundKeywords.sort((a, b) => b.count - a.count).slice(0, 3)
+                    };
+                }
+            });
+
+            if (Object.keys(categoryStats).length === 0) {
+                categoryKeywordsDiv.innerHTML = '<div class="text-center text-gray-500">카테고리별 키워드가 없습니다.</div>';
+                return;
+            }
+
+            const maxCategoryCount = Math.max(...Object.values(categoryStats).map(cat => cat.totalCount));
+
+            categoryKeywordsDiv.innerHTML = Object.entries(categoryStats)
+                .sort((a, b) => b[1].totalCount - a[1].totalCount)
+                .map(([category, stats]) => {
+                    const percentage = (stats.totalCount / maxCategoryCount) * 100;
+                    const categoryColors = {
+                        '시설관리': 'bg-blue-500',
+                        '소음': 'bg-red-500',
+                        '주차': 'bg-yellow-500',
+                        '관리비': 'bg-green-500',
+                        '보안': 'bg-purple-500',
+                        '생활편의': 'bg-indigo-500'
+                    };
+                    const color = categoryColors[category] || 'bg-gray-500';
+                    
+                    return `
+                        <div class="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                            <div class="flex items-center justify-between mb-3">
+                                <h4 class="font-medium text-gray-900">${category}</h4>
+                                <span class="text-sm text-gray-500">${stats.totalCount}회</span>
+                            </div>
+                            <div class="mb-3">
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="${color} h-2 rounded-full transition-all duration-500" style="width: ${percentage}%"></div>
+                                </div>
+                            </div>
+                            <div class="flex flex-wrap gap-2">
+                                ${stats.keywords.map(({ keyword, count }) => `
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                        ${keyword} (${count})
+                                    </span>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+        }
+
+        function generateAIInsights(wordFrequency, data) {
+            const insightsDiv = document.getElementById('aiInsights');
+            const insights = [];
+
+            // Analyze top issues
+            const topKeywords = Object.entries(wordFrequency)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5);
+
+            if (topKeywords.length > 0) {
+                const topIssue = topKeywords[0];
+                insights.push({
+                    icon: '🔍',
+                    title: '주요 이슈 분석',
+                    content: `"${topIssue[0]}"가 ${topIssue[1]}회로 가장 많이 언급되었습니다. 이 분야에 대한 집중적인 관리가 필요합니다.`
+                });
+            }
+
+            // Analyze urgency patterns
+            const urgentCount = data.filter(item => item.priority === 'urgent').length;
+            const highCount = data.filter(item => item.priority === 'high').length;
+            const totalCount = data.length;
+
+            if (totalCount > 0) {
+                const urgencyRate = ((urgentCount + highCount) / totalCount * 100).toFixed(1);
+                if (urgencyRate > 50) {
+                    insights.push({
+                        icon: '⚠️',
+                        title: '긴급도 분석',
+                        content: `전체 요청의 ${urgencyRate}%가 높은 우선순위입니다. 신속한 대응 체계 강화가 필요합니다.`
+                    });
+                } else {
+                    insights.push({
+                        icon: '✅',
+                        title: '긴급도 분석',
+                        content: `전체 요청의 ${urgencyRate}%가 높은 우선순위로 적정 수준입니다.`
+                    });
+                }
+            }
+
+            // Analyze channel patterns
+            const channelCounts = {};
+            data.forEach(item => {
+                channelCounts[item.channel] = (channelCounts[item.channel] || 0) + 1;
+            });
+
+            const topChannel = Object.entries(channelCounts)
+                .sort((a, b) => b[1] - a[1])[0];
+
+            if (topChannel) {
+                const channelNames = { sms: 'SMS', email: '이메일', web: '웹폼', call: '통화' };
+                insights.push({
+                    icon: '📊',
+                    title: '채널 분석',
+                    content: `${channelNames[topChannel[0]] || topChannel[0]}를 통한 접수가 ${topChannel[1]}건으로 가장 많습니다. 이 채널의 사용성 개선을 고려해보세요.`
+                });
+            }
+
+            // Analyze processing efficiency
+            const processedCount = data.filter(item => item.status === 'processed').length;
+            const processingRate = totalCount > 0 ? (processedCount / totalCount * 100).toFixed(1) : 0;
+
+            if (processingRate < 30) {
+                insights.push({
+                    icon: '📈',
+                    title: '처리 효율성',
+                    content: `처리 완료율이 ${processingRate}%로 낮습니다. 업무 프로세스 개선이 필요합니다.`
+                });
+            } else if (processingRate > 80) {
+                insights.push({
+                    icon: '🎯',
+                    title: '처리 효율성',
+                    content: `처리 완료율이 ${processingRate}%로 우수합니다. 현재 프로세스를 유지하세요.`
+                });
+            }
+
+            // Analyze keyword diversity
+            const keywordCount = Object.keys(wordFrequency).length;
+            if (keywordCount > 20) {
+                insights.push({
+                    icon: '🔄',
+                    title: '이슈 다양성',
+                    content: `${keywordCount}개의 다양한 키워드가 발견되었습니다. 다양한 이슈에 대한 종합적인 대응 방안이 필요합니다.`
+                });
+            }
+
+            if (insights.length === 0) {
+                insightsDiv.innerHTML = '<div class="text-center text-blue-600">분석할 데이터가 충분하지 않습니다.</div>';
+                return;
+            }
+
+            insightsDiv.innerHTML = insights.map(insight => `
+                <div class="flex items-start space-x-3 p-4 bg-white rounded-lg border border-blue-100">
+                    <div class="flex-shrink-0 text-2xl">${insight.icon}</div>
+                    <div class="flex-1">
+                        <h4 class="font-medium text-blue-900">${insight.title}</h4>
+                        <p class="text-sm text-blue-700 mt-1">${insight.content}</p>
+                    </div>
+                </div>
+            `).join('');
         }
 
         function updateChannelChart(data) {
+            if (typeof Chart === 'undefined') {
+                console.error('❌ Chart.js not available for channel chart');
+                return;
+            }
+
             const channelCounts = {};
             data.forEach(item => {
                 channelCounts[item.channel] = (channelCounts[item.channel] || 0) + 1;
@@ -381,6 +1199,11 @@
         }
 
         function updateStatusChart(data) {
+            if (typeof Chart === 'undefined') {
+                console.error('❌ Chart.js not available for status chart');
+                return;
+            }
+
             const statusCounts = {};
             data.forEach(item => {
                 statusCounts[item.status] = (statusCounts[item.status] || 0) + 1;
@@ -418,6 +1241,11 @@
         }
 
         function updatePriorityChart(data) {
+            if (typeof Chart === 'undefined') {
+                console.error('❌ Chart.js not available for priority chart');
+                return;
+            }
+
             const priorityCounts = {};
             data.forEach(item => {
                 priorityCounts[item.priority] = (priorityCounts[item.priority] || 0) + 1;
@@ -449,6 +1277,11 @@
         }
 
         function updateTrendChart(data) {
+            if (typeof Chart === 'undefined') {
+                console.error('❌ Chart.js not available for trend chart');
+                return;
+            }
+
             // Group data by date
             const dailyCounts = {};
             data.forEach(item => {
@@ -552,6 +1385,11 @@
         }
 
         // Event listeners
+        document.getElementById('loadData').addEventListener('click', () => {
+            console.log('🔄 Manual data load requested');
+            loadReportData();
+        });
+        
         document.getElementById('applyFilters').addEventListener('click', loadReportData);
         
         document.getElementById('resetFilters').addEventListener('click', () => {
@@ -571,6 +1409,46 @@
             const filters = getFilterValues();
             const filteredData = applyFilters(currentData, filters);
             exportToCSV(filteredData);
+        });
+
+        document.getElementById('testWordCloud').addEventListener('click', () => {
+            console.log('🧪 Testing word cloud with current data:', currentData.length, 'messages');
+            if (currentData.length > 0) {
+                updateWordCloud(currentData);
+            } else {
+                console.log('📝 No data loaded, using sample Korean apartment terms for testing');
+                // Use sample Korean apartment management terms for testing
+                const sampleData = [
+                    { content: '엘리베이터 고장 신고합니다', classification: { keywords: ['엘리베이터', '고장', '신고'] } },
+                    { content: '주차장 불법주차 문제', classification: { keywords: ['주차장', '불법주차', '문제'] } },
+                    { content: '소음 민원 접수', classification: { keywords: ['소음', '민원', '접수'] } },
+                    { content: '누수 신고 드립니다', classification: { keywords: ['누수', '신고', '수리'] } },
+                    { content: '관리비 문의사항', classification: { keywords: ['관리비', '문의', '요금'] } },
+                    { content: '택배보관함 고장', classification: { keywords: ['택배보관함', '고장', '수리'] } },
+                    { content: '난방 온도 조절 요청', classification: { keywords: ['난방', '온도', '조절'] } },
+                    { content: '청소 상태 불만', classification: { keywords: ['청소', '상태', '불만'] } },
+                    { content: '보안 문제 신고', classification: { keywords: ['보안', '문제', '신고'] } },
+                    { content: '시설 개선 건의', classification: { keywords: ['시설', '개선', '건의'] } }
+                ];
+                updateWordCloud(sampleData);
+                alert('샘플 데이터로 워드클라우드를 생성했습니다. 실제 데이터를 보려면 먼저 "📊 데이터 로드" 버튼을 클릭하세요.');
+            }
+        });
+
+        document.getElementById('debugLibraries').addEventListener('click', () => {
+            const chartAvailable = typeof Chart !== 'undefined';
+            const wordCloudAvailable = typeof WordCloud !== 'undefined';
+            
+            alert(`라이브러리 상태:
+Chart.js: ${chartAvailable ? '✅ 로드됨' : '❌ 로드 실패'}
+WordCloud: ${wordCloudAvailable ? '✅ 로드됨' : '❌ 로드 실패'}
+데이터: ${currentData.length}개 메시지`);
+            
+            console.log('🔍 Library debug info:', {
+                Chart: typeof Chart,
+                WordCloud: typeof WordCloud,
+                dataCount: currentData.length
+            });
         });
 
         function exportToCSV(data) {
