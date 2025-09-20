@@ -1,0 +1,1 @@
+export { frontendRoutes } from './routes';
