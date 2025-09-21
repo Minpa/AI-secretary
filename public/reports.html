@@ -407,13 +407,7 @@
                 
                 // Add loading message if it doesn't exist
                 let loadingDiv = trendChart.parentElement.querySelector('.trend-loading');
-                if (!loadingDiv) {
-                    loadingDiv = document.createElement('div');
-                    loadingDiv.className = 'trend-loading text-center text-blue-600 py-8';
-                    loadingDiv.textContent = '⏳ 차트 생성 중...';
-                    trendChart.parentElement.appendChild(loadingDiv);
-                }
-                loadingDiv.style.display = 'block';
+                // Loading message removed - charts load fast enough
             }
         }
 
@@ -462,6 +456,7 @@
                     
                     // Update charts
                     try {
+                        console.log('📊 About to update charts with', filteredData.length, 'items');
                         updateCharts(filteredData);
                         console.log('✅ Charts updated');
                     } catch (error) {
@@ -557,13 +552,43 @@
             console.log('📊 updateCharts called with', data.length, 'items');
             console.log('📊 Chart.js available:', typeof Chart !== 'undefined');
             
-            // Always try fallback charts first since they're more reliable
-            console.log('📊 Using fallback charts for reliability');
-            try {
+            // Try Chart.js first for better visuals, fallback to HTML if needed
+            if (typeof Chart !== 'undefined') {
+                console.log('📊 Using Chart.js for pie charts');
+                
+                // Update each chart individually with error handling
+                try {
+                    updateChannelChart(data);
+                    console.log('✅ Channel chart updated');
+                } catch (error) {
+                    console.error('❌ Channel chart failed:', error);
+                }
+                
+                try {
+                    updateStatusChart(data);
+                    console.log('✅ Status chart updated');
+                } catch (error) {
+                    console.error('❌ Status chart failed:', error);
+                }
+                
+                try {
+                    updatePriorityChart(data);
+                    console.log('✅ Priority chart updated');
+                } catch (error) {
+                    console.error('❌ Priority chart failed:', error);
+                }
+                
+                try {
+                    updateTrendChart(data);
+                    console.log('✅ Trend chart updated');
+                } catch (error) {
+                    console.error('❌ Trend chart failed:', error);
+                }
+                
+                console.log('✅ All Chart.js charts processing completed');
+            } else {
+                console.log('📊 Chart.js not available, using fallback charts');
                 updateFallbackCharts(data);
-                console.log('✅ All fallback charts updated');
-            } catch (error) {
-                console.error('❌ Error in fallback charts:', error);
             }
         }
         
@@ -596,7 +621,15 @@
             });
             
             const canvas = document.getElementById('channelChart');
+            if (!canvas) {
+                console.error('❌ channelChart canvas not found');
+                return;
+            }
             const container = canvas.parentElement;
+            if (!container) {
+                console.error('❌ channelChart container not found');
+                return;
+            }
             
             // Replace canvas with HTML chart
             container.innerHTML = `
@@ -628,7 +661,15 @@
             });
             
             const canvas = document.getElementById('statusChart');
+            if (!canvas) {
+                console.error('❌ statusChart canvas not found');
+                return;
+            }
             const container = canvas.parentElement;
+            if (!container) {
+                console.error('❌ statusChart container not found');
+                return;
+            }
             const statusLabels = { pending: '대기중', classified: '분류완료', assigned: '할당됨', processed: '처리완료' };
             const statusColors = { pending: 'bg-gray-500', classified: 'bg-blue-500', assigned: 'bg-purple-500', processed: 'bg-green-500' };
             
@@ -659,7 +700,15 @@
             });
             
             const canvas = document.getElementById('priorityChart');
+            if (!canvas) {
+                console.error('❌ priorityChart canvas not found');
+                return;
+            }
             const container = canvas.parentElement;
+            if (!container) {
+                console.error('❌ priorityChart container not found');
+                return;
+            }
             const priorityLabels = { urgent: '긴급', high: '높음', medium: '보통', low: '낮음' };
             const priorityColors = { urgent: 'bg-red-500', high: 'bg-orange-500', medium: 'bg-yellow-500', low: 'bg-green-500' };
             
@@ -684,7 +733,8 @@
         }
         
         function updateFallbackTrendChart(data) {
-            console.log('📈 updateFallbackTrendChart called with', data.length, 'messages');
+            console.log('📈 🚨 FALLBACK updateFallbackTrendChart called with', data.length, 'messages');
+            console.log('📈 🚨 This should NOT be called if Chart.js is working!');
             
             try {
                 // Find container by looking for the trend chart section title
@@ -737,21 +787,9 @@
                     return;
                 }
                 
-                // Show last 7 days or all available dates (whichever is more)
-                let displayDates;
-                if (allDates.length === 1) {
-                    // Single day - show it with context
-                    const singleDate = new Date(allDates[0]);
-                    displayDates = [];
-                    for (let i = -3; i <= 3; i++) {
-                        const date = new Date(singleDate);
-                        date.setDate(date.getDate() + i);
-                        displayDates.push(date.toISOString().split('T')[0]);
-                    }
-                } else {
-                    // Multiple days - use actual range
-                    displayDates = allDates;
-                }
+                // Use ONLY the dates that have actual data from the filtered dataset
+                // Do not add extra dates - show exactly what the user filtered for
+                const displayDates = allDates;
                 
                 const maxCount = Math.max(...Object.values(dailyCounts));
                 console.log('📈 Display dates:', displayDates);
@@ -1546,6 +1584,9 @@
 
         function updateTrendChart(data) {
             console.log('📈 updateTrendChart called with', data.length, 'messages');
+            console.log('📈 Chart.js available:', typeof Chart !== 'undefined');
+            console.log('📈 Canvas element exists:', !!document.getElementById('trendChart'));
+            
             if (typeof Chart === 'undefined') {
                 console.error('❌ Chart.js not available for trend chart');
                 // Fall back to HTML chart
@@ -1556,9 +1597,15 @@
             // Try to find canvas, if not found, use fallback
             const canvas = document.getElementById('trendChart');
             if (!canvas) {
-                console.log('📈 Canvas not found, using fallback chart');
+                console.error('❌ trendChart canvas not found, using fallback chart');
                 updateFallbackTrendChart(data);
                 return;
+            }
+            
+            console.log('✅ Canvas found, proceeding with Chart.js');
+            
+            if (data.length === 0) {
+                console.log('📈 No data provided, showing empty chart');
             }
 
             // Group data by date
@@ -1570,35 +1617,17 @@
 
             console.log('📈 Chart.js Daily counts:', dailyCounts);
             
-            // Use the actual date range from the filtered data
+            // Use ONLY the dates that have actual data from the filtered dataset
             const dataDate = Object.keys(dailyCounts).sort();
             console.log('📈 Chart.js Data dates found:', dataDate);
-            let sortedDates;
             
+            let sortedDates;
             if (dataDate.length === 0) {
                 // No data - show empty chart
                 sortedDates = [];
-            } else if (dataDate.length === 1) {
-                // Single day - show that day plus 6 days around it for context
-                const singleDate = new Date(dataDate[0]);
-                sortedDates = [];
-                for (let i = -3; i <= 3; i++) {
-                    const date = new Date(singleDate);
-                    date.setDate(date.getDate() + i);
-                    const dateStr = date.toISOString().split('T')[0];
-                    sortedDates.push(dateStr);
-                }
             } else {
-                // Multiple days - use the actual range from data
-                const startDate = new Date(dataDate[0]);
-                const endDate = new Date(dataDate[dataDate.length - 1]);
-                sortedDates = [];
-                
-                const currentDate = new Date(startDate);
-                while (currentDate <= endDate) {
-                    sortedDates.push(currentDate.toISOString().split('T')[0]);
-                    currentDate.setDate(currentDate.getDate() + 1);
-                }
+                // Use exactly the dates that have data - no extra dates
+                sortedDates = dataDate;
             }
             
             const counts = sortedDates.map(date => dailyCounts[date] || 0);
@@ -1606,13 +1635,15 @@
             const ctx = canvas.getContext('2d');
             
             if (charts.trend) {
+                console.log('📈 🔄 Destroying existing trend chart');
                 charts.trend.destroy();
             }
             
+            console.log('📈 🆕 Creating new trend chart...');
             charts.trend = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: sortedDates.map(date => new Date(date).toLocaleDateString('ko-KR')),
+                    labels: sortedDates.map(date => new Date(date).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })),
                     datasets: [{
                         label: '일별 접수',
                         data: counts,
@@ -1622,8 +1653,14 @@
                     }]
                 },
                 options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
+                    responsive: false,
+                    maintainAspectRatio: true,
+                    animation: {
+                        duration: 0  // Disable animations to prevent continuous redrawing
+                    },
+                    interaction: {
+                        intersect: false
+                    },
                     scales: {
                         y: {
                             beginAtZero: true
@@ -1631,6 +1668,17 @@
                     }
                 }
             });
+            
+            console.log('📈 ✅ Chart.js trend chart created successfully');
+            console.log('📈 ✅ Chart instance:', charts.trend);
+            console.log('📈 ✅ Canvas parent:', canvas.parentElement);
+            console.log('📈 ✅ Canvas dimensions:', canvas.width, 'x', canvas.height);
+            console.log('📈 ✅ Canvas style:', canvas.style.width, 'x', canvas.style.height);
+            
+            // Force canvas to be visible
+            canvas.style.display = 'block';
+            canvas.style.width = '100%';
+            canvas.style.height = '300px';
         }
 
         function updateDataTable(data) {
