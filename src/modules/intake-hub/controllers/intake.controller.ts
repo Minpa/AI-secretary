@@ -15,7 +15,7 @@ export class IntakeController {
 
   handleSMS = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const { from, body } = req.body;
+      const { from, body, createdAt } = req.body;
       
       if (!from || !body) {
         throw new AppError('Missing required fields: from, body', 400);
@@ -24,7 +24,8 @@ export class IntakeController {
       const message = await this.intakeService.processMessage({
         channel: IntakeChannel.SMS,
         content: body,
-        sender: from
+        sender: from,
+        createdAt: createdAt ? new Date(createdAt) : undefined
       });
 
       const response: ApiResponse = {
@@ -41,7 +42,7 @@ export class IntakeController {
 
   handleEmail = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const { from, subject, body } = req.body;
+      const { from, subject, body, createdAt } = req.body;
       
       if (!from || !body) {
         throw new AppError('Missing required fields: from, body', 400);
@@ -52,7 +53,8 @@ export class IntakeController {
       const message = await this.intakeService.processMessage({
         channel: IntakeChannel.EMAIL,
         content,
-        sender: from
+        sender: from,
+        createdAt: createdAt ? new Date(createdAt) : undefined
       });
 
       const response: ApiResponse = {
@@ -69,7 +71,7 @@ export class IntakeController {
 
   handleWeb = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const { name, email, message } = req.body;
+      const { name, email, message, createdAt } = req.body;
       
       if (!email || !message) {
         throw new AppError('Missing required fields: email, message', 400);
@@ -78,7 +80,8 @@ export class IntakeController {
       const processedMessage = await this.intakeService.processMessage({
         channel: IntakeChannel.WEB,
         content: message,
-        sender: email
+        sender: email,
+        createdAt: createdAt ? new Date(createdAt) : undefined
       });
 
       const response: ApiResponse = {
@@ -95,7 +98,7 @@ export class IntakeController {
 
   handleCall = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const { caller, transcript, duration } = req.body;
+      const { caller, transcript, duration, createdAt } = req.body;
       
       if (!caller || !transcript) {
         throw new AppError('Missing required fields: caller, transcript', 400);
@@ -104,7 +107,8 @@ export class IntakeController {
       const message = await this.intakeService.processMessage({
         channel: IntakeChannel.CALL,
         content: transcript,
-        sender: caller
+        sender: caller,
+        createdAt: createdAt ? new Date(createdAt) : undefined
       });
 
       const response: ApiResponse = {

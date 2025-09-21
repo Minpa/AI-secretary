@@ -287,6 +287,23 @@ function addRandomDelay() {
     return new Promise(resolve => setTimeout(resolve, Math.random() * 100 + 50));
 }
 
+function getRandomDate() {
+    // Generate dates between August 4, 2025 and September 20, 2025
+    const startDate = new Date('2025-08-04');
+    const endDate = new Date('2025-09-20');
+    
+    const timeDiff = endDate.getTime() - startDate.getTime();
+    const randomTime = Math.random() * timeDiff;
+    const randomDate = new Date(startDate.getTime() + randomTime);
+    
+    // Add random hours and minutes for more realistic timestamps
+    randomDate.setHours(Math.floor(Math.random() * 24));
+    randomDate.setMinutes(Math.floor(Math.random() * 60));
+    randomDate.setSeconds(Math.floor(Math.random() * 60));
+    
+    return randomDate.toISOString();
+}
+
 async function generateDummyData() {
     console.log('🚀 Starting dummy data generation...');
     
@@ -298,7 +315,8 @@ async function generateDummyData() {
     for (let i = 0; i < 100; i++) {
         const data = {
             from: getRandomElement(phoneNumbers),
-            body: getRandomElement(smsMessages)
+            body: getRandomElement(smsMessages),
+            createdAt: getRandomDate()
         };
         
         const result = await sendRequest(`${BASE_URL}/sms`, data);
@@ -319,7 +337,8 @@ async function generateDummyData() {
         const data = {
             from: getRandomElement(emailAddresses),
             subject: emailData.subject,
-            body: emailData.body
+            body: emailData.body,
+            createdAt: getRandomDate()
         };
         
         const result = await sendRequest(`${BASE_URL}/email`, data);
@@ -339,7 +358,8 @@ async function generateDummyData() {
         const data = {
             name: getRandomElement(names),
             email: getRandomElement(emailAddresses),
-            message: getRandomElement(webMessages)
+            message: getRandomElement(webMessages),
+            createdAt: getRandomDate()
         };
         
         const result = await sendRequest(`${BASE_URL}/web`, data);
@@ -359,7 +379,8 @@ async function generateDummyData() {
         const data = {
             caller: getRandomElement(phoneNumbers),
             duration: Math.floor(Math.random() * 10) + 1, // 1-10 minutes
-            transcript: getRandomElement(callTranscripts)
+            transcript: getRandomElement(callTranscripts),
+            createdAt: getRandomDate()
         };
         
         const result = await sendRequest(`${BASE_URL}/call`, data);

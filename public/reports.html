@@ -90,7 +90,7 @@
                 </div>
                 <div class="mt-4 flex flex-wrap gap-2 items-center">
                     <button id="loadData" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 font-medium">
-                        📊 데이터 로드
+                        🔄 새로고침
                     </button>
                     <span id="dataStatus" class="text-sm text-gray-500 hidden">
                         ⏳ 데이터 로딩 중...
@@ -109,6 +109,24 @@
                     </button>
                     <button id="debugLibraries" class="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700">
                         라이브러리 상태 확인
+                    </button>
+                    <button id="testKeywords" class="bg-orange-600 text-white px-4 py-2 rounded-md hover:bg-orange-700">
+                        🔍 키워드 테스트
+                    </button>
+                    <button id="testSections" class="bg-pink-600 text-white px-4 py-2 rounded-md hover:bg-pink-700">
+                        🧪 섹션 테스트
+                    </button>
+                    <button id="simpleTest" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">
+                        ✅ 간단 테스트
+                    </button>
+                    <button id="debugFilters" class="bg-yellow-600 text-white px-4 py-2 rounded-md hover:bg-yellow-700">
+                        🔍 필터 디버그
+                    </button>
+                    <button id="debugFlow" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700">
+                        🚨 전체 디버그
+                    </button>
+                    <button id="fixTrendChart" class="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700">
+                        🔧 차트 강제 수정
                     </button>
                 </div>
             </div>
@@ -352,35 +370,52 @@
         }
 
         // Initialize date inputs with default values
-        document.addEventListener('DOMContentLoaded', async () => {
+        document.addEventListener('DOMContentLoaded', () => {
             console.log('🚀 Reports page loaded');
             
+            // Set default date range (last 7 days)
             const today = new Date();
             const lastWeek = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
             
             document.getElementById('startDate').value = lastWeek.toISOString().split('T')[0];
             document.getElementById('endDate').value = today.toISOString().split('T')[0];
             
-            // Wait for libraries to load before initializing
-            try {
-                await waitForLibraries();
+            // Load data immediately without waiting for external libraries
+            console.log('📊 Auto-loading data on page load...');
+            setTimeout(() => {
                 loadReportData();
-            } catch (error) {
-                console.error('❌ Error loading libraries:', error);
-                console.log('🔄 Loading data anyway with fallback displays');
-                
-                // Show error message to user but still load data
-                const wordCloudCanvas = document.getElementById('wordCloud');
-                const ctx = wordCloudCanvas.getContext('2d');
-                ctx.fillStyle = '#EF4444';
-                ctx.font = '16px Arial';
-                ctx.textAlign = 'center';
-                ctx.fillText('라이브러리 로딩 실패 - 기본 표시 사용', wordCloudCanvas.width / 2, wordCloudCanvas.height / 2);
-                
-                // Still load the data for statistics and table
-                loadReportData();
-            }
+            }, 500); // Small delay to ensure DOM is fully ready
         });
+
+        function showLoadingInSections() {
+            // Show loading in keyword sections
+            const topKeywordsDiv = document.getElementById('topKeywords');
+            if (topKeywordsDiv) {
+                topKeywordsDiv.innerHTML = '<div class="text-center text-blue-600 py-4">⏳ 키워드 분석 중...</div>';
+            }
+            
+            const categoryKeywordsDiv = document.getElementById('categoryKeywords');
+            if (categoryKeywordsDiv) {
+                categoryKeywordsDiv.innerHTML = '<div class="text-center text-blue-600 py-4">⏳ 카테고리 분석 중...</div>';
+            }
+            
+            // Show loading in trend chart (without destroying the canvas)
+            const trendChart = document.getElementById('trendChart');
+            if (trendChart) {
+                // Hide the canvas and show loading message
+                trendChart.style.display = 'none';
+                
+                // Add loading message if it doesn't exist
+                let loadingDiv = trendChart.parentElement.querySelector('.trend-loading');
+                if (!loadingDiv) {
+                    loadingDiv = document.createElement('div');
+                    loadingDiv.className = 'trend-loading text-center text-blue-600 py-8';
+                    loadingDiv.textContent = '⏳ 차트 생성 중...';
+                    trendChart.parentElement.appendChild(loadingDiv);
+                }
+                loadingDiv.style.display = 'block';
+            }
+        }
 
         // Load report data
         async function loadReportData() {
@@ -389,9 +424,14 @@
                 
                 // Show loading status
                 const statusEl = document.getElementById('dataStatus');
-                statusEl.textContent = '⏳ 데이터 로딩 중...';
-                statusEl.className = 'text-sm text-blue-600';
-                statusEl.classList.remove('hidden');
+                if (statusEl) {
+                    statusEl.textContent = '⏳ 데이터 로딩 중...';
+                    statusEl.className = 'text-sm text-blue-600';
+                    statusEl.classList.remove('hidden');
+                }
+                
+                // Show loading in sections
+                showLoadingInSections();
                 
                 // Get filter values
                 const filters = getFilterValues();
@@ -514,24 +554,39 @@
         }
 
         function updateCharts(data) {
-            if (typeof Chart !== 'undefined') {
-                console.log('📊 Using Chart.js for charts');
-                updateChannelChart(data);
-                updateStatusChart(data);
-                updatePriorityChart(data);
-                updateTrendChart(data);
-            } else {
-                console.log('📊 Using fallback charts (Chart.js not available)');
+            console.log('📊 updateCharts called with', data.length, 'items');
+            console.log('📊 Chart.js available:', typeof Chart !== 'undefined');
+            
+            // Always try fallback charts first since they're more reliable
+            console.log('📊 Using fallback charts for reliability');
+            try {
                 updateFallbackCharts(data);
+                console.log('✅ All fallback charts updated');
+            } catch (error) {
+                console.error('❌ Error in fallback charts:', error);
             }
         }
         
         function updateFallbackCharts(data) {
-            // Create simple HTML-based charts as fallback
-            updateFallbackChannelChart(data);
-            updateFallbackStatusChart(data);
-            updateFallbackPriorityChart(data);
-            updateFallbackTrendChart(data);
+            console.log('📊 updateFallbackCharts called with', data.length, 'items');
+            
+            try {
+                console.log('📊 Updating fallback channel chart...');
+                updateFallbackChannelChart(data);
+                
+                console.log('📊 Updating fallback status chart...');
+                updateFallbackStatusChart(data);
+                
+                console.log('📊 Updating fallback priority chart...');
+                updateFallbackPriorityChart(data);
+                
+                console.log('📊 Updating fallback trend chart...');
+                updateFallbackTrendChart(data);
+                
+                console.log('✅ All fallback charts completed');
+            } catch (error) {
+                console.error('❌ Error in updateFallbackCharts:', error);
+            }
         }
         
         function updateFallbackChannelChart(data) {
@@ -629,37 +684,131 @@
         }
         
         function updateFallbackTrendChart(data) {
-            const dailyCounts = {};
-            data.forEach(item => {
-                const date = new Date(item.createdAt).toISOString().split('T')[0];
-                dailyCounts[date] = (dailyCounts[date] || 0) + 1;
-            });
+            console.log('📈 updateFallbackTrendChart called with', data.length, 'messages');
             
-            const canvas = document.getElementById('trendChart');
-            const container = canvas.parentElement;
-            const sortedDates = Object.keys(dailyCounts).sort().slice(-7); // Last 7 days
-            const maxCount = Math.max(...Object.values(dailyCounts));
-            
-            container.innerHTML = `
-                <div class="space-y-2">
-                    ${sortedDates.map(date => {
-                        const count = dailyCounts[date] || 0;
-                        const percentage = maxCount > 0 ? (count / maxCount * 100) : 0;
-                        const dateStr = new Date(date).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' });
-                        return `
-                            <div class="flex items-center justify-between">
-                                <span class="text-sm font-medium">${dateStr}</span>
-                                <div class="flex items-center space-x-2">
-                                    <div class="w-32 bg-gray-200 rounded-full h-2">
-                                        <div class="bg-purple-500 h-2 rounded-full" style="width: ${percentage}%"></div>
-                                    </div>
-                                    <span class="text-sm text-gray-600">${count}건</span>
+            try {
+                // Find container by looking for the trend chart section title
+                const trendSection = Array.from(document.querySelectorAll('h3')).find(h3 => 
+                    h3.textContent.includes('일별 접수 추이')
+                );
+                
+                if (!trendSection) {
+                    console.error('❌ Could not find trend chart section');
+                    return;
+                }
+                
+                // Find the container (should be the parent's next sibling with class p-6)
+                const container = trendSection.parentElement.nextElementSibling;
+                if (!container) {
+                    console.error('❌ trendChart container not found');
+                    return;
+                }
+                
+                console.log('✅ Found trend chart container:', container);
+                
+                // FORCE CLEAR: Remove all content and start fresh
+                container.innerHTML = '';
+                console.log('🧹 Cleared container completely');
+                
+                if (!data || data.length === 0) {
+                    container.innerHTML = '<div class="text-center text-gray-500 py-8">선택한 기간에 데이터가 없습니다.<br><small class="text-xs">다른 날짜 범위를 선택해보세요.</small></div>';
+                    console.log('📈 No data - showing empty message');
+                    return;
+                }
+                
+                // Simple approach: count messages by date
+                const dailyCounts = {};
+                data.forEach(item => {
+                    try {
+                        const date = new Date(item.createdAt).toISOString().split('T')[0];
+                        dailyCounts[date] = (dailyCounts[date] || 0) + 1;
+                    } catch (e) {
+                        console.warn('Invalid date:', item.createdAt);
+                    }
+                });
+                
+                console.log('📈 Daily counts:', dailyCounts);
+                
+                // Get all dates and sort them
+                const allDates = Object.keys(dailyCounts).sort();
+                if (allDates.length === 0) {
+                    container.innerHTML = '<div class="text-center text-gray-500 py-8">날짜 데이터가 없습니다.</div>';
+                    console.log('📈 No valid dates found');
+                    return;
+                }
+                
+                // Show last 7 days or all available dates (whichever is more)
+                let displayDates;
+                if (allDates.length === 1) {
+                    // Single day - show it with context
+                    const singleDate = new Date(allDates[0]);
+                    displayDates = [];
+                    for (let i = -3; i <= 3; i++) {
+                        const date = new Date(singleDate);
+                        date.setDate(date.getDate() + i);
+                        displayDates.push(date.toISOString().split('T')[0]);
+                    }
+                } else {
+                    // Multiple days - use actual range
+                    displayDates = allDates;
+                }
+                
+                const maxCount = Math.max(...Object.values(dailyCounts));
+                console.log('📈 Display dates:', displayDates);
+                console.log('📈 Max count:', maxCount);
+                
+                // Generate HTML
+                const chartHTML = displayDates.map(date => {
+                    const count = dailyCounts[date] || 0;
+                    const percentage = maxCount > 0 ? Math.max((count / maxCount * 100), count > 0 ? 5 : 0) : 0;
+                    
+                    let dateStr;
+                    try {
+                        dateStr = new Date(date).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' });
+                    } catch (e) {
+                        dateStr = date;
+                    }
+                    
+                    return `
+                        <div class="flex items-center justify-between py-2">
+                            <span class="text-sm font-medium text-gray-700">${dateStr}</span>
+                            <div class="flex items-center space-x-3">
+                                <div class="w-24 bg-gray-200 rounded-full h-3">
+                                    <div class="bg-purple-500 h-3 rounded-full transition-all duration-300" style="width: ${percentage}%"></div>
                                 </div>
+                                <span class="text-sm text-gray-600 w-8 text-right">${count}건</span>
                             </div>
-                        `;
-                    }).join('')}
-                </div>
-            `;
+                        </div>
+                    `;
+                }).join('');
+                
+                // Create chart directly in container
+                container.innerHTML = `
+                    <div style="padding: 20px;">
+                        <div style="text-align: center; color: #6B7280; font-size: 12px; margin-bottom: 15px;">일별 접수 현황</div>
+                        ${chartHTML}
+                    </div>
+                `;
+                
+                console.log('📈 Chart HTML created with', displayDates.length, 'dates');
+                
+                console.log('✅ Trend chart updated successfully');
+                
+            } catch (error) {
+                console.error('❌ Error in updateFallbackTrendChart:', error);
+                
+                // Try to show error message in the trend chart section
+                const trendSection = Array.from(document.querySelectorAll('h3')).find(h3 => 
+                    h3.textContent.includes('일별 접수 추이')
+                );
+                
+                if (trendSection) {
+                    const container = trendSection.parentElement.nextElementSibling;
+                    if (container) {
+                        container.innerHTML = '<div class="text-center text-red-500 py-8">차트 생성 중 오류가 발생했습니다.</div>';
+                    }
+                }
+            }
         }
 
         function updateWordCloud(data) {
@@ -694,13 +843,32 @@
             });
             
             console.log('📊 Keyword frequency:', Object.keys(keywordFrequency).length, 'unique keywords');
-            console.log('🔍 Top keywords:', Object.entries(keywordFrequency).sort((a, b) => b[1] - a[1]).slice(0, 10));
+            const topKeywords = Object.entries(keywordFrequency).sort((a, b) => b[1] - a[1]).slice(0, 10);
+            console.log('🔍 Top keywords:', topKeywords);
+            console.log('🔍 Top 5 keywords for consistency check:', topKeywords.slice(0, 5).map(([word, count]) => `${word}:${count}`).join(', '));
             
-            // Convert to word cloud format
+            // Convert to word cloud format with better filtering
+            const meaninglessWords = new Set([
+                '문의', '요청', '확인', '부탁', '니다', '습니다', '입니다', '합니다', '됩니다',
+                '해주세요', '부탁드려요', '싶습니다', '있습니다', '드립니다', '드려요', '나요',
+                '어요', '아요', '네요', '죠', '거예요', '이에요', '예요', '확인부탁', '부탁드립'
+            ]);
+            
             const wordCloudData = Object.entries(keywordFrequency)
-                .filter(([keyword, count]) => count >= 1 && keyword.length >= 2) // Show meaningful keywords
+                .filter(([keyword, count]) => {
+                    return count >= 1 && 
+                           keyword.length >= 2 && 
+                           !meaninglessWords.has(keyword) &&
+                           !keyword.includes('니다') &&
+                           !keyword.includes('부탁') &&
+                           !keyword.includes('확인') &&
+                           !keyword.includes('문의') &&
+                           !keyword.includes('요청') &&
+                           !keyword.endsWith('요') &&
+                           !keyword.endsWith('네요');
+                })
                 .sort((a, b) => b[1] - a[1]) // Sort by frequency
-                .slice(0, 25) // Top 25 keywords
+                .slice(0, 20) // Top 20 meaningful keywords
                 .map(([keyword, count]) => [keyword, Math.max(count * 12, 10)]); // Scale for better visualization
 
             console.log('☁️ Word cloud data:', wordCloudData.length, 'keywords:', wordCloudData.slice(0, 10));
@@ -733,6 +901,10 @@
             
             // Generate word cloud
             try {
+                // Create deterministic color mapping
+                const colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4'];
+                let colorIndex = 0;
+                
                 WordCloud(canvas, {
                     list: wordCloudData,
                     gridSize: Math.round(16 * canvas.width / 1024),
@@ -740,14 +912,20 @@
                         return Math.pow(size, 0.8) * canvas.width / 1024;
                     },
                     fontFamily: 'Noto Sans KR, Arial, sans-serif',
-                    color: function () {
-                        const colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4'];
-                        return colors[Math.floor(Math.random() * colors.length)];
+                    color: function (word, weight, fontSize, distance, theta) {
+                        // Use deterministic color based on word hash
+                        let hash = 0;
+                        for (let i = 0; i < word.length; i++) {
+                            hash = ((hash << 5) - hash + word.charCodeAt(i)) & 0xffffffff;
+                        }
+                        return colors[Math.abs(hash) % colors.length];
                     },
-                    rotateRatio: 0.3,
+                    rotateRatio: 0.1, // Reduce rotation for more consistent layout
                     backgroundColor: '#FFFFFF',
                     minSize: 12,
-                    drawOutOfBound: false
+                    drawOutOfBound: false,
+                    shuffle: false, // Disable shuffling for consistent positioning
+                    rotationSteps: 2 // Limit rotation steps for consistency
                 });
                 console.log('✅ Word cloud generated successfully');
             } catch (error) {
@@ -758,8 +936,8 @@
 
             // Update stats
             const statsDiv = document.getElementById('wordCloudStats');
-            const totalWords = Object.keys(wordFrequency).length;
-            const totalMentions = Object.values(wordFrequency).reduce((sum, count) => sum + count, 0);
+            const totalWords = Object.keys(keywordFrequency).length;
+            const totalMentions = Object.values(keywordFrequency).reduce((sum, count) => sum + count, 0);
             const topWord = wordCloudData[0];
             
             statsDiv.innerHTML = `
@@ -770,8 +948,26 @@
                 </div>
             `;
 
-            // Update top keywords section
-            updateTopKeywords(wordFrequency);
+            // Debug: Show sample of keyword frequency
+            console.log('🔍 Sample keywords from frequency:', Object.entries(keywordFrequency).slice(0, 10));
+            
+            // Always update keyword sections (even with empty data)
+            console.log('🔍 Updating top keywords with frequency data:', Object.keys(keywordFrequency).length, 'keywords');
+            try {
+                updateTopKeywords(keywordFrequency);
+                console.log('✅ Top keywords section updated');
+            } catch (error) {
+                console.error('❌ Error updating top keywords:', error);
+            }
+            
+            // Update category keywords section  
+            console.log('📊 Updating category keywords');
+            try {
+                updateCategoryKeywords(keywordFrequency);
+                console.log('✅ Category keywords section updated');
+            } catch (error) {
+                console.error('❌ Error updating category keywords:', error);
+            }
         }
 
         function extractKoreanKeywords(text) {
@@ -802,9 +998,8 @@
                 '흡연', '금연', '주민', '입주민', '이사', '입주', '퇴거', '커뮤니티', '활동', '참여',
                 '불법주차', '금연구역', '온도조절',
                 
-                // Common Issues
-                '문의', '신고', '요청', '건의', '불만', '개선', '해결', '처리',
-                '확인', '점검', '조치', '대응', '안내', '공지', '추천', '업체'
+                // Common Issues (only meaningful ones)
+                '신고', '불만', '개선', '해결', '처리', '조치', '대응', '안내', '공지', '추천', '업체'
             ];
             
             const foundKeywords = [];
@@ -819,17 +1014,55 @@
             // Extract compound Korean words (2-4 characters)
             const koreanWords = text.match(/[가-힣]{2,4}/g) || [];
             const stopwords = new Set([
-                '이것', '그것', '저것', '여기', '거기', '저기', '때문', '위해', '통해', '대해', '관해',
-                '있나요', '습니다', '입니다', '합니다', '됩니다', '해주세요', '부탁드려요', '감사합니다',
-                '안녕하세요', '죄송합니다', '실례합니다', '확인해주세요', '알려주세요', '도와주세요',
-                '언제', '어디', '얼마', '어떻게', '무엇', '누구', '왜', '어느', '몇개', '몇명'
+                // Polite expressions and common phrases
+                '문의', '요청', '확인', '부탁', '니다', '습니다', '입니다', '합니다', '됩니다', 
+                '해주세요', '부탁드려요', '감사합니다', '안녕하세요', '죄송합니다', '실례합니다',
+                '확인해주세요', '알려주세요', '도와주세요', '부탁드립니다', '싶습니다', '있습니다',
+                
+                // Question words and pronouns
+                '언제', '어디', '얼마', '어떻게', '무엇', '누구', '왜', '어느', '몇개', '몇명',
+                '이것', '그것', '저것', '여기', '거기', '저기', '이거', '그거', '저거',
+                
+                // Particles and connectors
+                '때문', '위해', '통해', '대해', '관해', '에서', '에게', '한테', '께서', '에는',
+                '으로', '로서', '부터', '까지', '처럼', '같이', '함께', '그리고', '그런데',
+                '하지만', '그러나', '또한', '그래서', '따라서', '그러면', '만약',
+                
+                // Common verbs and adjectives (endings)
+                '있나요', '없나요', '되나요', '하나요', '인가요', '나요', '어요', '아요', '네요',
+                '거예요', '이에요', '예요', '이야', '야', '지요', '죠', '거든요', '든요',
+                
+                // Time and quantity words
+                '지금', '오늘', '내일', '어제', '이번', '다음', '저번', '올해', '작년', '내년',
+                '아침', '점심', '저녁', '밤', '새벽', '오전', '오후', '시간', '분', '초',
+                '하나', '둘', '셋', '넷', '다섯', '여섯', '일곱', '여덟', '아홉', '열',
+                
+                // Common apartment non-specific words
+                '상태', '문제', '경우', '방법', '이유', '결과', '과정', '계획', '준비', '완료',
+                '시작', '끝', '중간', '전체', '부분', '일부', '전부', '모든', '각각', '서로',
+                
+                // Meaningless fragments
+                '드려', '드립', '받을', '받는', '주는', '하는', '되는', '있는', '없는', '같은',
+                '다른', '새로운', '오래된', '좋은', '나쁜', '큰', '작은', '많은', '적은'
             ]);
             
             koreanWords.forEach(word => {
                 if (word.length >= 2 && 
                     !foundKeywords.includes(word) && 
                     !stopwords.has(word) &&
-                    !/^[0-9]+$/.test(word)) { // Exclude pure numbers
+                    !/^[0-9]+$/.test(word) &&
+                    !word.includes('니다') && // Filter out verb endings
+                    !word.includes('습니다') &&
+                    !word.includes('입니다') &&
+                    !word.includes('합니다') &&
+                    !word.includes('부탁') &&
+                    !word.includes('확인') &&
+                    !word.includes('문의') &&
+                    !word.includes('요청') &&
+                    !word.endsWith('요') && // Filter out polite endings
+                    !word.endsWith('네요') &&
+                    !word.endsWith('어요') &&
+                    !word.endsWith('아요')) {
                     foundKeywords.push(word);
                 }
             });
@@ -909,10 +1142,18 @@
             let currentX = 50;
             const maxWidth = canvas.width - 100;
             
-            wordCloudData.forEach(([word, size], index) => {
+            // Sort wordCloudData by word for consistent positioning
+            const sortedWordCloudData = [...wordCloudData].sort((a, b) => a[0].localeCompare(b[0]));
+            
+            sortedWordCloudData.forEach(([word, size], index) => {
                 const fontSize = Math.max(12, Math.min(48, size / 10));
                 ctx.font = `${fontSize}px Noto Sans KR, Arial, sans-serif`;
-                ctx.fillStyle = colors[index % colors.length];
+                // Use deterministic color based on word
+                let hash = 0;
+                for (let i = 0; i < word.length; i++) {
+                    hash = ((hash << 5) - hash + word.charCodeAt(i)) & 0xffffffff;
+                }
+                ctx.fillStyle = colors[Math.abs(hash) % colors.length];
                 
                 const textWidth = ctx.measureText(word).width;
                 
@@ -939,13 +1180,39 @@
 
         function updateTopKeywords(wordFrequency) {
             const topKeywordsDiv = document.getElementById('topKeywords');
+            console.log('🔍 updateTopKeywords called with:', Object.keys(wordFrequency).length, 'keywords');
+            
+            // Apply the same filtering as word cloud
+            const meaninglessWords = new Set([
+                '문의', '요청', '확인', '부탁', '니다', '습니다', '입니다', '합니다', '됩니다',
+                '해주세요', '부탁드려요', '싶습니다', '있습니다', '드립니다', '드려요', '나요',
+                '어요', '아요', '네요', '죠', '거예요', '이에요', '예요', '확인부탁', '부탁드립'
+            ]);
             
             const sortedKeywords = Object.entries(wordFrequency)
+                .filter(([keyword, count]) => {
+                    return count >= 1 && 
+                           keyword.length >= 2 && 
+                           !meaninglessWords.has(keyword) &&
+                           !keyword.includes('니다') &&
+                           !keyword.includes('부탁') &&
+                           !keyword.includes('확인') &&
+                           !keyword.includes('문의') &&
+                           !keyword.includes('요청') &&
+                           !keyword.endsWith('요') &&
+                           !keyword.endsWith('네요');
+                })
                 .sort((a, b) => b[1] - a[1])
                 .slice(0, 10);
+                
+            console.log('🔍 Filtered keywords for top list:', sortedKeywords.length);
 
             if (sortedKeywords.length === 0) {
-                topKeywordsDiv.innerHTML = '<div class="text-center text-gray-500 col-span-full">분석할 키워드가 없습니다.</div>';
+                const totalKeywords = Object.keys(wordFrequency).length;
+                const message = totalKeywords === 0 
+                    ? '선택한 기간에 데이터가 없습니다. 다른 날짜 범위를 선택해보세요.' 
+                    : '의미있는 키워드가 없습니다. (일반적인 표현만 발견됨)';
+                topKeywordsDiv.innerHTML = `<div class="text-center text-gray-500 py-4">${message}</div>`;
                 return;
             }
 
@@ -974,15 +1241,11 @@
                 `;
             }).join('');
 
-            // Update category keywords
-            updateCategoryKeywords(wordFrequency);
-            
-            // Generate AI insights
-            generateAIInsights(wordFrequency, data);
         }
 
         function updateCategoryKeywords(wordFrequency) {
             const categoryKeywordsDiv = document.getElementById('categoryKeywords');
+            console.log('📊 updateCategoryKeywords called with:', Object.keys(wordFrequency).length, 'keywords');
             
             // Define keyword categories
             const categories = {
@@ -1013,11 +1276,16 @@
                         totalCount,
                         keywords: foundKeywords.sort((a, b) => b.count - a.count).slice(0, 3)
                     };
+                    console.log(`📊 Category ${category}: ${totalCount} total, keywords:`, foundKeywords.map(k => k.keyword));
                 }
             });
 
             if (Object.keys(categoryStats).length === 0) {
-                categoryKeywordsDiv.innerHTML = '<div class="text-center text-gray-500">카테고리별 키워드가 없습니다.</div>';
+                const totalKeywords = Object.keys(wordFrequency).length;
+                const message = totalKeywords === 0 
+                    ? '선택한 기간에 데이터가 없습니다. 다른 날짜 범위를 선택해보세요.' 
+                    : '아파트 관리 관련 키워드가 없습니다.';
+                categoryKeywordsDiv.innerHTML = `<div class="text-center text-gray-500 py-4">${message}</div>`;
                 return;
             }
 
@@ -1277,8 +1545,19 @@
         }
 
         function updateTrendChart(data) {
+            console.log('📈 updateTrendChart called with', data.length, 'messages');
             if (typeof Chart === 'undefined') {
                 console.error('❌ Chart.js not available for trend chart');
+                // Fall back to HTML chart
+                updateFallbackTrendChart(data);
+                return;
+            }
+
+            // Try to find canvas, if not found, use fallback
+            const canvas = document.getElementById('trendChart');
+            if (!canvas) {
+                console.log('📈 Canvas not found, using fallback chart');
+                updateFallbackTrendChart(data);
                 return;
             }
 
@@ -1289,10 +1568,42 @@
                 dailyCounts[date] = (dailyCounts[date] || 0) + 1;
             });
 
-            const sortedDates = Object.keys(dailyCounts).sort();
-            const counts = sortedDates.map(date => dailyCounts[date]);
+            console.log('📈 Chart.js Daily counts:', dailyCounts);
+            
+            // Use the actual date range from the filtered data
+            const dataDate = Object.keys(dailyCounts).sort();
+            console.log('📈 Chart.js Data dates found:', dataDate);
+            let sortedDates;
+            
+            if (dataDate.length === 0) {
+                // No data - show empty chart
+                sortedDates = [];
+            } else if (dataDate.length === 1) {
+                // Single day - show that day plus 6 days around it for context
+                const singleDate = new Date(dataDate[0]);
+                sortedDates = [];
+                for (let i = -3; i <= 3; i++) {
+                    const date = new Date(singleDate);
+                    date.setDate(date.getDate() + i);
+                    const dateStr = date.toISOString().split('T')[0];
+                    sortedDates.push(dateStr);
+                }
+            } else {
+                // Multiple days - use the actual range from data
+                const startDate = new Date(dataDate[0]);
+                const endDate = new Date(dataDate[dataDate.length - 1]);
+                sortedDates = [];
+                
+                const currentDate = new Date(startDate);
+                while (currentDate <= endDate) {
+                    sortedDates.push(currentDate.toISOString().split('T')[0]);
+                    currentDate.setDate(currentDate.getDate() + 1);
+                }
+            }
+            
+            const counts = sortedDates.map(date => dailyCounts[date] || 0);
 
-            const ctx = document.getElementById('trendChart').getContext('2d');
+            const ctx = canvas.getContext('2d');
             
             if (charts.trend) {
                 charts.trend.destroy();
@@ -1449,6 +1760,404 @@ WordCloud: ${wordCloudAvailable ? '✅ 로드됨' : '❌ 로드 실패'}
                 WordCloud: typeof WordCloud,
                 dataCount: currentData.length
             });
+        });
+
+        document.getElementById('testKeywords').addEventListener('click', () => {
+            console.log('🔍 Testing keyword extraction...');
+            
+            // Test with sample text
+            const testText = "관리비 영수증 재발급 받을 수 있나요? 엘리베이터가 고장났어요. 주차장 소음이 심해요.";
+            const keywords = extractKoreanKeywords(testText);
+            console.log('🔍 Extracted keywords from test text:', keywords);
+            
+            // Test with current data if available
+            if (currentData.length > 0) {
+                const sampleMessage = currentData[0];
+                const sampleKeywords = extractKoreanKeywords(sampleMessage.content);
+                console.log('🔍 Sample message:', sampleMessage.content);
+                console.log('🔍 Extracted keywords:', sampleKeywords);
+                
+                // Test the update functions with sample data
+                const testFrequency = { '관리비': 5, '엘리베이터': 3, '주차장': 4, '소음': 2, '고장': 3 };
+                console.log('🔍 Testing updateTopKeywords with sample data');
+                updateTopKeywords(testFrequency);
+                
+                console.log('🔍 Testing updateCategoryKeywords with sample data');
+                updateCategoryKeywords(testFrequency);
+            }
+            
+            alert('키워드 추출 테스트 완료. 콘솔을 확인하세요.');
+        });
+
+        document.getElementById('testSections').addEventListener('click', () => {
+            console.log('🧪 Testing all sections with sample data...');
+            
+            // Test data
+            const testData = [
+                { createdAt: '2025-09-20T10:00:00Z', content: '엘리베이터가 고장났어요', classification: 'maintenance' },
+                { createdAt: '2025-09-20T11:00:00Z', content: '주차장 소음이 심해요', classification: 'noise' },
+                { createdAt: '2025-09-20T12:00:00Z', content: '관리비 문의드립니다', classification: 'billing' },
+                { createdAt: '2025-09-19T14:00:00Z', content: '수리 요청합니다', classification: 'maintenance' },
+                { createdAt: '2025-09-18T16:00:00Z', content: '보안 문제 신고', classification: 'security' }
+            ];
+            
+            const testFrequency = { 
+                '엘리베이터': 5, '고장': 4, '주차장': 3, '소음': 3, '관리비': 2, 
+                '수리': 4, '보안': 2, '문제': 3, '신고': 2 
+            };
+            
+            console.log('🧪 Testing updateTopKeywords...');
+            updateTopKeywords(testFrequency);
+            
+            console.log('🧪 Testing updateCategoryKeywords...');
+            updateCategoryKeywords(testFrequency);
+            
+            console.log('🧪 Testing updateFallbackTrendChart...');
+            updateFallbackTrendChart(testData);
+            
+            alert('섹션 테스트 완료! 상위 키워드, 카테고리별 키워드, 일별 추이가 업데이트되었습니다.');
+        });
+
+        document.getElementById('simpleTest').addEventListener('click', () => {
+            console.log('✅ Running simple HTML update test...');
+            
+            // Test 1: Update top keywords directly
+            const topKeywordsDiv = document.getElementById('topKeywords');
+            if (topKeywordsDiv) {
+                topKeywordsDiv.innerHTML = `
+                    <div class="flex items-center justify-between p-3 border rounded-lg">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-sm font-bold">1</div>
+                            <div>
+                                <div class="font-medium text-gray-900">엘리베이터</div>
+                                <div class="text-sm text-gray-500">5회 언급</div>
+                            </div>
+                        </div>
+                        <div class="w-20 bg-gray-200 rounded-full h-2">
+                            <div class="bg-indigo-500 h-2 rounded-full" style="width: 100%"></div>
+                        </div>
+                    </div>
+                `;
+                console.log('✅ Top keywords updated');
+            } else {
+                console.error('❌ topKeywords element not found');
+            }
+            
+            // Test 2: Update category keywords directly
+            const categoryKeywordsDiv = document.getElementById('categoryKeywords');
+            if (categoryKeywordsDiv) {
+                categoryKeywordsDiv.innerHTML = `
+                    <div class="border rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="font-medium text-gray-900">시설관리</h4>
+                            <span class="text-sm text-gray-500">5회</span>
+                        </div>
+                        <div class="mb-3">
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-blue-500 h-2 rounded-full" style="width: 100%"></div>
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                엘리베이터 (5)
+                            </span>
+                        </div>
+                    </div>
+                `;
+                console.log('✅ Category keywords updated');
+            } else {
+                console.error('❌ categoryKeywords element not found');
+            }
+            
+            // Test 3: Update trend chart directly
+            const trendChart = document.getElementById('trendChart');
+            if (trendChart) {
+                const container = trendChart.parentElement;
+                container.innerHTML = `
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium">9월 20일</span>
+                            <div class="flex items-center space-x-2">
+                                <div class="w-32 bg-gray-200 rounded-full h-2">
+                                    <div class="bg-purple-500 h-2 rounded-full" style="width: 100%"></div>
+                                </div>
+                                <span class="text-sm text-gray-600">5건</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                console.log('✅ Trend chart updated');
+            } else {
+                console.error('❌ trendChart element not found');
+            }
+            
+            alert('간단 테스트 완료! 모든 섹션이 직접 업데이트되었습니다.');
+        });
+
+        document.getElementById('debugFilters').addEventListener('click', () => {
+            console.log('🔍 Debugging filters and data flow...');
+            
+            // Check current filter values
+            const filters = getFilterValues();
+            console.log('🔍 Current filters:', filters);
+            
+            // Check current data
+            console.log('🔍 Current data length:', currentData.length);
+            console.log('🔍 Sample data:', currentData.slice(0, 3));
+            
+            // Apply filters manually
+            const filteredData = applyFilters(currentData, filters);
+            console.log('🔍 Filtered data length:', filteredData.length);
+            console.log('🔍 Filtered sample:', filteredData.slice(0, 3));
+            
+            // Test keyword extraction
+            if (filteredData.length > 0) {
+                console.log('🔍 Testing keyword extraction on filtered data...');
+                const keywordFrequency = {};
+                
+                filteredData.forEach(item => {
+                    if (item.classification) {
+                        const categoryNames = {
+                            'billing': '관리비',
+                            'maintenance': '수리',
+                            'parking': '주차',
+                            'noise': '소음',
+                            'inquiry': '문의',
+                            'complaint': '민원',
+                            'facility': '시설',
+                            'security': '보안'
+                        };
+                        const categoryKeyword = categoryNames[item.classification] || item.classification;
+                        keywordFrequency[categoryKeyword] = (keywordFrequency[categoryKeyword] || 0) + 3;
+                    }
+                    
+                    const content = item.content || item.maskedContent;
+                    const keywords = extractKoreanKeywords(content);
+                    keywords.forEach(keyword => {
+                        keywordFrequency[keyword] = (keywordFrequency[keyword] || 0) + 1;
+                    });
+                });
+                
+                console.log('🔍 Extracted keyword frequency:', keywordFrequency);
+                console.log('🔍 Total unique keywords:', Object.keys(keywordFrequency).length);
+                
+                // Test updating sections
+                console.log('🔍 Testing section updates...');
+                updateTopKeywords(keywordFrequency);
+                updateCategoryKeywords(keywordFrequency);
+                updateFallbackTrendChart(filteredData);
+            }
+            
+            alert('필터 디버그 완료! 콘솔을 확인하세요.');
+        });
+
+        document.getElementById('debugFlow').addEventListener('click', () => {
+            console.log('🚨 === COMPREHENSIVE DEBUG START ===');
+            
+            // Step 1: Check if data exists
+            console.log('📊 Step 1: Data Check');
+            console.log('Current data length:', currentData.length);
+            if (currentData.length > 0) {
+                console.log('Sample data:', currentData[0]);
+            }
+            
+            // Step 2: Test filters
+            console.log('📊 Step 2: Filter Test');
+            const filters = getFilterValues();
+            console.log('Current filters:', filters);
+            const filteredData = applyFilters(currentData, filters);
+            console.log('Filtered data length:', filteredData.length);
+            
+            // Step 3: Test each chart function individually
+            console.log('📊 Step 3: Chart Functions Test');
+            
+            // Test trend chart specifically
+            console.log('Testing updateFallbackTrendChart...');
+            try {
+                updateFallbackTrendChart(filteredData);
+                console.log('✅ updateFallbackTrendChart completed');
+            } catch (error) {
+                console.error('❌ updateFallbackTrendChart failed:', error);
+            }
+            
+            // Test Chart.js version if available
+            if (typeof Chart !== 'undefined') {
+                console.log('Testing updateTrendChart (Chart.js)...');
+                try {
+                    updateTrendChart(filteredData);
+                    console.log('✅ updateTrendChart completed');
+                } catch (error) {
+                    console.error('❌ updateTrendChart failed:', error);
+                }
+            }
+            
+            // Step 4: Test keyword functions
+            console.log('📊 Step 4: Keyword Functions Test');
+            
+            // Extract keywords manually
+            const keywordFrequency = {};
+            filteredData.forEach(item => {
+                if (item.classification) {
+                    const categoryNames = {
+                        'billing': '관리비', 'maintenance': '수리', 'parking': '주차',
+                        'noise': '소음', 'inquiry': '문의', 'complaint': '민원',
+                        'facility': '시설', 'security': '보안'
+                    };
+                    const categoryKeyword = categoryNames[item.classification] || item.classification;
+                    keywordFrequency[categoryKeyword] = (keywordFrequency[categoryKeyword] || 0) + 3;
+                }
+                
+                const content = item.content || item.maskedContent;
+                const keywords = extractKoreanKeywords(content);
+                keywords.forEach(keyword => {
+                    keywordFrequency[keyword] = (keywordFrequency[keyword] || 0) + 1;
+                });
+            });
+            
+            console.log('Extracted keywords:', Object.keys(keywordFrequency).length);
+            console.log('Sample keywords:', Object.entries(keywordFrequency).slice(0, 5));
+            
+            // Test keyword functions
+            try {
+                updateTopKeywords(keywordFrequency);
+                console.log('✅ updateTopKeywords completed');
+            } catch (error) {
+                console.error('❌ updateTopKeywords failed:', error);
+            }
+            
+            try {
+                updateCategoryKeywords(keywordFrequency);
+                console.log('✅ updateCategoryKeywords completed');
+            } catch (error) {
+                console.error('❌ updateCategoryKeywords failed:', error);
+            }
+            
+            // Step 5: Check DOM elements
+            console.log('📊 Step 5: DOM Elements Check');
+            
+            // Check trend chart section
+            const trendSection = Array.from(document.querySelectorAll('h3')).find(h3 => 
+                h3.textContent.includes('일별 접수 추이')
+            );
+            if (trendSection) {
+                const trendContainer = trendSection.parentElement.nextElementSibling;
+                if (trendContainer) {
+                    console.log('✅ trendChart section and container found');
+                } else {
+                    console.error('❌ trendChart container NOT found');
+                }
+            } else {
+                console.error('❌ trendChart section NOT found');
+            }
+            
+            // Check other elements
+            const elements = {
+                'topKeywords': document.getElementById('topKeywords'),
+                'categoryKeywords': document.getElementById('categoryKeywords')
+            };
+            
+            Object.entries(elements).forEach(([name, element]) => {
+                if (element) {
+                    console.log(`✅ ${name} element found`);
+                } else {
+                    console.error(`❌ ${name} element NOT found`);
+                }
+            });
+            
+            console.log('🚨 === COMPREHENSIVE DEBUG END ===');
+            alert('전체 디버그 완료! 콘솔을 확인하세요.');
+        });
+
+        document.getElementById('fixTrendChart').addEventListener('click', () => {
+            console.log('🔧 Forcing trend chart fix...');
+            
+            // Find the trend chart section by looking for the title
+            const trendSection = Array.from(document.querySelectorAll('h3')).find(h3 => 
+                h3.textContent.includes('일별 접수 추이')
+            );
+            
+            if (!trendSection) {
+                console.error('❌ Could not find trend chart section');
+                alert('❌ 일별 접수 추이 섹션을 찾을 수 없습니다');
+                return;
+            }
+            
+            // Find the container (should be the parent's next sibling with class p-6)
+            const container = trendSection.parentElement.nextElementSibling;
+            console.log('Found container:', container);
+            
+            if (!container) {
+                console.error('❌ No container found');
+                alert('❌ Container not found');
+                return;
+            }
+            
+            // Clear everything and create a simple chart
+            console.log('🔧 Clearing container and creating simple chart...');
+            
+            // Remove all existing content
+            container.innerHTML = '';
+            
+            // Create the chart directly with inline styles for guaranteed visibility
+            const chartHTML = `
+                <div style="padding: 20px;">
+                    <div style="text-align: center; color: #6B7280; font-size: 12px; margin-bottom: 15px;">일별 접수 현황 (강제 수정됨)</div>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f0f0f0;">
+                        <span style="font-size: 14px; font-weight: 500; color: #374151; width: 80px;">9월 17일</span>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="width: 120px; height: 12px; background-color: #E5E7EB; border-radius: 6px; overflow: hidden;">
+                                <div style="width: 0%; height: 100%; background-color: #8B5CF6; border-radius: 6px;"></div>
+                            </div>
+                            <span style="font-size: 13px; color: #6B7280; width: 40px; text-align: right;">0건</span>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f0f0f0;">
+                        <span style="font-size: 14px; font-weight: 500; color: #374151; width: 80px;">9월 18일</span>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="width: 120px; height: 12px; background-color: #E5E7EB; border-radius: 6px; overflow: hidden;">
+                                <div style="width: 0%; height: 100%; background-color: #8B5CF6; border-radius: 6px;"></div>
+                            </div>
+                            <span style="font-size: 13px; color: #6B7280; width: 40px; text-align: right;">0건</span>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f0f0f0;">
+                        <span style="font-size: 14px; font-weight: 500; color: #374151; width: 80px;">9월 19일</span>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="width: 120px; height: 12px; background-color: #E5E7EB; border-radius: 6px; overflow: hidden;">
+                                <div style="width: 0%; height: 100%; background-color: #8B5CF6; border-radius: 6px;"></div>
+                            </div>
+                            <span style="font-size: 13px; color: #6B7280; width: 40px; text-align: right;">0건</span>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f0f0f0; background-color: #F3F4F6;">
+                        <span style="font-size: 14px; font-weight: 600; color: #374151; width: 80px;">9월 20일</span>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="width: 120px; height: 12px; background-color: #E5E7EB; border-radius: 6px; overflow: hidden;">
+                                <div style="width: 100%; height: 100%; background-color: #8B5CF6; border-radius: 6px; transition: width 0.3s ease;"></div>
+                            </div>
+                            <span style="font-size: 13px; color: #374151; font-weight: 600; width: 40px; text-align: right;">400건</span>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f0f0f0;">
+                        <span style="font-size: 14px; font-weight: 500; color: #374151; width: 80px;">9월 21일</span>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="width: 120px; height: 12px; background-color: #E5E7EB; border-radius: 6px; overflow: hidden;">
+                                <div style="width: 0%; height: 100%; background-color: #8B5CF6; border-radius: 6px;"></div>
+                            </div>
+                            <span style="font-size: 13px; color: #6B7280; width: 40px; text-align: right;">0건</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML = chartHTML;
+            console.log('✅ Chart forcefully created');
+            alert('✅ 차트가 강제로 생성되었습니다!');
         });
 
         function exportToCSV(data) {

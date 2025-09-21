@@ -8,6 +8,7 @@ interface CreateMessageInput {
   channel: IntakeChannel;
   content: string;
   sender: string;
+  createdAt?: Date; // Optional custom timestamp for dummy data generation
 }
 
 export class IntakeService {
@@ -37,7 +38,7 @@ export class IntakeService {
         maskedSender,
         priority,
         status: IntakeStatus.PENDING,
-        createdAt: new Date(),
+        createdAt: input.createdAt || new Date(),
         updatedAt: new Date()
       };
 
