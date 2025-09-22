@@ -50,5 +50,8 @@ export const test: Config = {
   ollama: {
     baseUrl: 'http://localhost:11434',
     model: 'mistral:7b'
+  },
+  llm: {
+    enabled: false // Disabled in tests by default
   }
 };

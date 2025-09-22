@@ -1,8 +1,10 @@
 import { Router } from 'express';
 import { IntakeController } from '../controllers/intake.controller';
+import { LLMController } from '../controllers/llm.controller';
 
 const router = Router();
 const intakeController = new IntakeController();
+const llmController = new LLMController();
 
 // Message intake endpoints
 router.post('/sms', intakeController.handleSMS);
@@ -18,6 +20,13 @@ router.patch('/messages/:id/status', intakeController.updateStatus);
 
 // Dashboard stats
 router.get('/stats', intakeController.getStats);
+
+// LLM management routes
+router.get('/llm/status', llmController.getStatus.bind(llmController));
+router.post('/llm/toggle', llmController.toggleLLM.bind(llmController));
+router.post('/llm/test', llmController.testClassification.bind(llmController));
+router.post('/llm/keywords', llmController.extractKeywords.bind(llmController));
+router.get('/llm/config', llmController.getConfig.bind(llmController));
 
 // Simple test endpoint
 router.get('/test', (req, res) => {

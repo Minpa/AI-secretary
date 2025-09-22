@@ -98,6 +98,9 @@
                     <button id="applyFilters" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">
                         필터 적용
                     </button>
+                    <button id="enableLLMAnalysis" class="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700">
+                        🤖 LLM 분석 (느림)
+                    </button>
                     <button id="resetFilters" class="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700">
                         초기화
                     </button>
@@ -465,7 +468,7 @@
                     
                     // Update word cloud
                     try {
-                        updateWordCloud(filteredData);
+                        await updateWordCloud(filteredData);
                         console.log('✅ Word cloud updated');
                     } catch (error) {
                         console.error('❌ Error updating word cloud:', error);
@@ -849,11 +852,72 @@
             }
         }
 
-        function updateWordCloud(data) {
+        async function updateWordCloud(data) {
             console.log('🔍 Updating word cloud with data:', data.length, 'messages');
             
+            // Check if LLM is available for enhanced analysis
+            let useLLM = false;
+            try {
+                // Temporarily disable LLM for reports to prevent hanging
+                // TODO: Re-enable once performance is optimized
+                const enableLLMForReports = false; // Disabled to prevent hanging
+                
+                if (enableLLMForReports) {
+                    const llmStatusResponse = await fetch('/api/intake/llm/status');
+                    const llmStatus = await llmStatusResponse.json();
+                    useLLM = llmStatus.success && llmStatus.data.enabled && llmStatus.data.available;
+                }
+                console.log('🤖 LLM available for enhanced analysis:', useLLM);
+            } catch (error) {
+                console.log('⚠️ LLM status check failed:', error.message);
+            }
+            
             // Extract keywords from content and classification categories
-            const keywordFrequency = {};
+            let keywordFrequency = {};
+            let analysisMethod = 'basic';
+            
+            // Try LLM-enhanced keyword extraction first (with timeout)
+            if (useLLM) {
+                try {
+                    console.log('🤖 Using LLM for enhanced keyword extraction...');
+                    const messages = data.map(item => item.content || item.maskedContent || '').filter(content => content.length > 0);
+                    
+                    // Add timeout to prevent hanging
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+                    
+                    const llmResponse = await fetch('/api/intake/llm/keywords', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ messages: messages.slice(0, 50) }), // Reduce to 50 messages for speed
+                        signal: controller.signal
+                    });
+                    
+                    clearTimeout(timeoutId);
+                    
+                    if (llmResponse.ok) {
+                        const llmData = await llmResponse.json();
+                        if (llmData.success && llmData.data.keywords && llmData.data.keywords.length > 0) {
+                            // Use LLM keywords
+                            llmData.data.keywords.forEach(kw => {
+                                keywordFrequency[kw.keyword] = kw.count;
+                            });
+                            analysisMethod = 'llm-enhanced';
+                            console.log('✅ Using LLM keywords:', Object.keys(keywordFrequency).length, 'keywords');
+                        } else {
+                            throw new Error('No LLM keywords returned');
+                        }
+                    } else {
+                        throw new Error('LLM API failed');
+                    }
+                } catch (error) {
+                    console.log('⚠️ LLM keyword extraction failed, using basic method:', error.message);
+                    useLLM = false;
+                }
+            }
+            
+            // Fallback to basic keyword extraction if LLM failed or unavailable
+            if (!useLLM || Object.keys(keywordFrequency).length === 0) {
             
             data.forEach(item => {
                 // Add classification category as a keyword
@@ -879,11 +943,16 @@
                     keywordFrequency[keyword] = (keywordFrequency[keyword] || 0) + 1;
                 });
             });
+            }
             
-            console.log('📊 Keyword frequency:', Object.keys(keywordFrequency).length, 'unique keywords');
+            console.log(`📊 Keyword frequency (${analysisMethod}):`, Object.keys(keywordFrequency).length, 'unique keywords');
             const topKeywords = Object.entries(keywordFrequency).sort((a, b) => b[1] - a[1]).slice(0, 10);
             console.log('🔍 Top keywords:', topKeywords);
             console.log('🔍 Top 5 keywords for consistency check:', topKeywords.slice(0, 5).map(([word, count]) => `${word}:${count}`).join(', '));
+            
+            // Add analysis method indicator to the word cloud
+            const methodIndicator = analysisMethod === 'llm-enhanced' ? 
+                '🤖 LLM 향상된 분석' : '📝 기본 분석';
             
             // Convert to word cloud format with better filtering
             const meaninglessWords = new Set([
@@ -980,6 +1049,7 @@
             
             statsDiv.innerHTML = `
                 <div class="flex justify-center space-x-6 text-sm">
+                    <span class="${analysisMethod === 'llm-enhanced' ? 'text-green-600' : 'text-gray-600'}">${methodIndicator}</span>
                     <span>총 키워드: <strong>${totalWords}개</strong></span>
                     <span>총 언급: <strong>${totalMentions}회</strong></span>
                     ${topWord ? `<span>최다 언급: <strong>"${topWord[0]}" (${Math.round(topWord[1]/10)}회)</strong></span>` : ''}
@@ -1770,10 +1840,10 @@
             exportToCSV(filteredData);
         });
 
-        document.getElementById('testWordCloud').addEventListener('click', () => {
+        document.getElementById('testWordCloud').addEventListener('click', async () => {
             console.log('🧪 Testing word cloud with current data:', currentData.length, 'messages');
             if (currentData.length > 0) {
-                updateWordCloud(currentData);
+                await updateWordCloud(currentData);
             } else {
                 console.log('📝 No data loaded, using sample Korean apartment terms for testing');
                 // Use sample Korean apartment management terms for testing
@@ -1789,7 +1859,7 @@
                     { content: '보안 문제 신고', classification: { keywords: ['보안', '문제', '신고'] } },
                     { content: '시설 개선 건의', classification: { keywords: ['시설', '개선', '건의'] } }
                 ];
-                updateWordCloud(sampleData);
+                await updateWordCloud(sampleData);
                 alert('샘플 데이터로 워드클라우드를 생성했습니다. 실제 데이터를 보려면 먼저 "📊 데이터 로드" 버튼을 클릭하세요.');
             }
         });
@@ -2232,6 +2302,129 @@ WordCloud: ${wordCloudAvailable ? '✅ 로드됨' : '❌ 로드 실패'}
             link.click();
             document.body.removeChild(link);
         }
+
+        // Manual LLM Analysis Button
+        document.getElementById('enableLLMAnalysis').addEventListener('click', async () => {
+            const button = document.getElementById('enableLLMAnalysis');
+            const originalText = button.textContent;
+            
+            try {
+                button.disabled = true;
+                
+                // Start countdown timer
+                let countdown = 30;
+                const countdownInterval = setInterval(() => {
+                    button.textContent = `🤖 LLM 분석 중... (${countdown}초 남음)`;
+                    countdown--;
+                    if (countdown < 0) {
+                        clearInterval(countdownInterval);
+                        button.textContent = '🤖 LLM 분석 중... (완료 대기)';
+                    }
+                }, 1000);
+                
+                console.log('🤖 Starting manual LLM analysis...');
+                
+                // Get current filtered data
+                const filters = getFilterValues();
+                const filteredData = applyFilters(currentData, filters);
+                
+                if (filteredData.length === 0) {
+                    throw new Error('No data to analyze');
+                }
+                
+                // Call LLM keywords API
+                const messages = filteredData.map(item => item.content || item.maskedContent || '').filter(content => content.length > 0);
+                
+                const llmResponse = await fetch('/api/intake/llm/keywords', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ messages: messages.slice(0, 30) }) // Limit to 30 for speed
+                });
+                
+                if (!llmResponse.ok) {
+                    throw new Error('LLM API failed');
+                }
+                
+                const llmData = await llmResponse.json();
+                if (!llmData.success || !llmData.data.keywords) {
+                    throw new Error('No LLM keywords returned');
+                }
+                
+                // Update keyword sections with LLM results
+                const keywordFrequency = {};
+                llmData.data.keywords.forEach(kw => {
+                    keywordFrequency[kw.keyword] = kw.count;
+                });
+                
+                console.log('✅ LLM keywords received:', Object.keys(keywordFrequency).length);
+                
+                // Update displays with LLM indicators
+                updateTopKeywords(keywordFrequency);
+                updateCategoryKeywords(keywordFrequency);
+                
+                // Add LLM indicators to section titles with animation
+                const topKeywordsTitle = Array.from(document.querySelectorAll('h3')).find(h3 => h3.textContent.includes('상위 키워드'));
+                if (topKeywordsTitle) {
+                    topKeywordsTitle.innerHTML = '🤖 상위 키워드 순위 <span class="text-green-600 text-sm font-bold animate-pulse">(LLM 적용됨)</span>';
+                    topKeywordsTitle.parentElement.style.border = '2px solid #10B981';
+                    topKeywordsTitle.parentElement.style.borderRadius = '8px';
+                    topKeywordsTitle.parentElement.style.backgroundColor = '#F0FDF4';
+                }
+                
+                const categoryTitle = Array.from(document.querySelectorAll('h3')).find(h3 => h3.textContent.includes('카테고리별'));
+                if (categoryTitle) {
+                    categoryTitle.innerHTML = '🤖 카테고리별 주요 키워드 <span class="text-green-600 text-sm font-bold animate-pulse">(LLM 적용됨)</span>';
+                    categoryTitle.parentElement.style.border = '2px solid #10B981';
+                    categoryTitle.parentElement.style.borderRadius = '8px';
+                    categoryTitle.parentElement.style.backgroundColor = '#F0FDF4';
+                }
+                
+                // Add success notification
+                const notification = document.createElement('div');
+                notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+                notification.innerHTML = '🤖 LLM 키워드 분석이 적용되었습니다!';
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 5000);
+                
+                // Update word cloud stats
+                const statsDiv = document.getElementById('wordCloudStats');
+                if (statsDiv) {
+                    const totalWords = Object.keys(keywordFrequency).length;
+                    statsDiv.innerHTML = `
+                        <div class="flex justify-center space-x-6 text-sm">
+                            <span class="text-green-600">🤖 LLM 향상된 분석</span>
+                            <span>총 키워드: <strong>${totalWords}개</strong></span>
+                            <span>분석 메시지: <strong>${messages.length}개</strong></span>
+                        </div>
+                    `;
+                }
+                
+                clearInterval(countdownInterval);
+                button.textContent = '✅ LLM 분석 완료!';
+                button.className = 'bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700';
+                
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.className = 'bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700';
+                    button.disabled = false;
+                }, 5000);
+                
+            } catch (error) {
+                clearInterval(countdownInterval);
+                console.error('Manual LLM analysis failed:', error);
+                button.textContent = '❌ LLM 분석 실패';
+                button.className = 'bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700';
+                
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.className = 'bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700';
+                    button.disabled = false;
+                }, 3000);
+            }
+        });
     </script>
 </body>
 </html>

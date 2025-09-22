@@ -50,5 +50,8 @@ export const development: Config = {
   ollama: {
     baseUrl: 'http://localhost:11434',
     model: 'mistral:7b'
+  },
+  llm: {
+    enabled: process.env.LLM_ENABLED === 'true' || false
   }
 };

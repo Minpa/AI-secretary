@@ -50,5 +50,8 @@ export const production: Config = {
   ollama: {
     baseUrl: process.env.OLLAMA_BASE_URL || 'http://localhost:11434',
     model: process.env.OLLAMA_MODEL || 'mistral:7b'
+  },
+  llm: {
+    enabled: process.env.LLM_ENABLED === 'true' || false
   }
 };

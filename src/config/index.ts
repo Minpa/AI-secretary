@@ -64,4 +64,7 @@ export interface Config {
     baseUrl: string;
     model: string;
   };
+  llm: {
+    enabled: boolean;
+  };
 }
