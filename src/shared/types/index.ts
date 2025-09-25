@@ -51,6 +51,16 @@ export interface IntakeMessage extends BaseEntity {
   priority: Priority;
   status: IntakeStatus;
   ticketId?: string;
+  apartmentUnit?: ApartmentUnitInfo;
+}
+
+export interface ApartmentUnitInfo {
+  dong?: number;
+  ho?: number;
+  floor?: number;
+  formatted: string;
+  confidence: number;
+  rawMatches: string[];
 }
 
 export enum IntakeChannel {

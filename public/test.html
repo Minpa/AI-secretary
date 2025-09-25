@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Secretary - 시스템 테스트</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <style>
         .gradient-bg {
@@ -173,8 +174,16 @@
                         </label>
                     </div>
 
-                    <button id="refreshLLMStatus" class="w-full bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700">
+                    <button id="refreshLLMStatus" class="w-full bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700 mb-2">
                         🔄 상태 새로고침
+                    </button>
+                    
+                    <button id="checkCurrentStatus" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 mb-2">
+                        🔍 현재 상태 확인
+                    </button>
+                    
+                    <button id="manualLoadStatus" class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700">
+                        🔧 수동 상태 로드
                     </button>
                 </div>
 
@@ -186,18 +195,23 @@
                         rows="4" 
                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
                         placeholder="분류할 메시지를 입력하세요..."
-                    >윗집에서 너무 시끄러워요. 밤늦게까지 쿵쿵거리는 소리가 나서 잠을 잘 수가 없습니다.</textarea>
+                    >101동 1502호에서 윗집 소음 때문에 고생하고 있습니다. 밤늦게까지 쿵쿵거리는 소리가 나서 잠을 잘 수가 없어요.</textarea>
                     
                     <button id="testLLM" class="w-full bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 mb-2">
                         🤖 LLM 분류 테스트
                     </button>
                     
-                    <button id="testLLMKeywords" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 mb-4">
+                    <button id="testLLMKeywords" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 mb-2">
                         🔍 LLM 키워드 분석
+                    </button>
+                    
+                    <button id="testApartmentParsing" class="w-full bg-orange-600 text-white py-2 px-4 rounded-md hover:bg-orange-700 mb-4">
+                        🏢 아파트 동/호수 분석
                     </button>
                     
                     <div id="llmTestResult" class="hidden"></div>
                     <div id="llmKeywordsResult" class="hidden"></div>
+                    <div id="apartmentParsingResult" class="hidden"></div>
                 </div>
             </div>
         </div>
@@ -274,185 +288,322 @@
         }
 
         // SMS Form
-        document.getElementById('smsForm').addEventListener('submit', async (e) => {
+        document.getElementById('smsForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            try {
-                const response = await fetch('/api/intake/sms', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        from: document.getElementById('smsFrom').value,
-                        body: document.getElementById('smsBody').value
-                    })
-                });
-                const data = await response.json();
-                displayResult('smsResult', data, !response.ok);
-            } catch (error) {
-                displayResult('smsResult', { error: error.message }, true);
-            }
+            
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '/api/intake/sms', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    try {
+                        const data = JSON.parse(xhr.responseText);
+                        displayResult('smsResult', data, xhr.status !== 200);
+                    } catch (parseError) {
+                        displayResult('smsResult', { error: 'Parse error: ' + parseError.message }, true);
+                    }
+                }
+            };
+            
+            xhr.onerror = function() {
+                displayResult('smsResult', { error: 'Network error' }, true);
+            };
+            
+            xhr.send(JSON.stringify({
+                from: document.getElementById('smsFrom').value,
+                body: document.getElementById('smsBody').value
+            }));
         });
 
         // Email Form
-        document.getElementById('emailForm').addEventListener('submit', async (e) => {
+        document.getElementById('emailForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            try {
-                const response = await fetch('/api/intake/email', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        from: document.getElementById('emailFrom').value,
-                        subject: document.getElementById('emailSubject').value,
-                        body: document.getElementById('emailBody').value
-                    })
-                });
-                const data = await response.json();
-                displayResult('emailResult', data, !response.ok);
-            } catch (error) {
-                displayResult('emailResult', { error: error.message }, true);
-            }
+            
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '/api/intake/email', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    try {
+                        const data = JSON.parse(xhr.responseText);
+                        displayResult('emailResult', data, xhr.status !== 200);
+                    } catch (parseError) {
+                        displayResult('emailResult', { error: 'Parse error: ' + parseError.message }, true);
+                    }
+                }
+            };
+            
+            xhr.onerror = function() {
+                displayResult('emailResult', { error: 'Network error' }, true);
+            };
+            
+            xhr.send(JSON.stringify({
+                from: document.getElementById('emailFrom').value,
+                subject: document.getElementById('emailSubject').value,
+                body: document.getElementById('emailBody').value
+            }));
         });
 
         // Web Form
-        document.getElementById('webForm').addEventListener('submit', async (e) => {
+        document.getElementById('webForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            try {
-                const response = await fetch('/api/intake/web', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        name: document.getElementById('webName').value,
-                        email: document.getElementById('webEmail').value,
-                        message: document.getElementById('webMessage').value
-                    })
-                });
-                const data = await response.json();
-                displayResult('webResult', data, !response.ok);
-            } catch (error) {
-                displayResult('webResult', { error: error.message }, true);
-            }
+            
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '/api/intake/web', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    try {
+                        const data = JSON.parse(xhr.responseText);
+                        displayResult('webResult', data, xhr.status !== 200);
+                    } catch (parseError) {
+                        displayResult('webResult', { error: 'Parse error: ' + parseError.message }, true);
+                    }
+                }
+            };
+            
+            xhr.onerror = function() {
+                displayResult('webResult', { error: 'Network error' }, true);
+            };
+            
+            xhr.send(JSON.stringify({
+                name: document.getElementById('webName').value,
+                email: document.getElementById('webEmail').value,
+                message: document.getElementById('webMessage').value
+            }));
         });
 
         // Call Form
-        document.getElementById('callForm').addEventListener('submit', async (e) => {
+        document.getElementById('callForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            try {
-                const response = await fetch('/api/intake/call', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        caller: document.getElementById('callCaller').value,
-                        duration: parseInt(document.getElementById('callDuration').value),
-                        transcript: document.getElementById('callTranscript').value
-                    })
-                });
-                const data = await response.json();
-                displayResult('callResult', data, !response.ok);
-            } catch (error) {
-                displayResult('callResult', { error: error.message }, true);
-            }
+            
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '/api/intake/call', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    try {
+                        const data = JSON.parse(xhr.responseText);
+                        displayResult('callResult', data, xhr.status !== 200);
+                    } catch (parseError) {
+                        displayResult('callResult', { error: 'Parse error: ' + parseError.message }, true);
+                    }
+                }
+            };
+            
+            xhr.onerror = function() {
+                displayResult('callResult', { error: 'Network error' }, true);
+            };
+            
+            xhr.send(JSON.stringify({
+                caller: document.getElementById('callCaller').value,
+                duration: parseInt(document.getElementById('callDuration').value),
+                transcript: document.getElementById('callTranscript').value
+            }));
         });
 
         // Get Messages
-        document.getElementById('getMessages').addEventListener('click', async () => {
-            try {
-                const response = await fetch('/api/intake/messages');
-                const data = await response.json();
-                displayResult('messagesResult', data, !response.ok);
-            } catch (error) {
-                displayResult('messagesResult', { error: error.message }, true);
-            }
+        document.getElementById('getMessages').addEventListener('click', function() {
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', '/api/intake/messages', true);
+            xhr.setRequestHeader('Accept', 'application/json');
+            
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    try {
+                        const data = JSON.parse(xhr.responseText);
+                        displayResult('messagesResult', data, xhr.status !== 200);
+                    } catch (parseError) {
+                        displayResult('messagesResult', { error: 'Parse error: ' + parseError.message }, true);
+                    }
+                }
+            };
+            
+            xhr.onerror = function() {
+                displayResult('messagesResult', { error: 'Network error' }, true);
+            };
+            
+            xhr.send();
         });
 
         // Status Update Form
-        document.getElementById('statusUpdateForm').addEventListener('submit', async (e) => {
+        document.getElementById('statusUpdateForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            try {
-                const messageId = document.getElementById('messageId').value;
-                const newStatus = document.querySelector('input[name="newStatus"]:checked')?.value;
+            
+            const messageId = document.getElementById('messageId').value;
+            const newStatusEl = document.querySelector('input[name="newStatus"]:checked');
+            const newStatus = newStatusEl ? newStatusEl.value : null;
 
-                if (!messageId || !newStatus) {
-                    displayResult('statusUpdateResult', { error: '메시지 ID와 상태를 모두 선택해주세요.' }, true);
-                    return;
-                }
-
-                const response = await fetch(`/api/intake/messages/${messageId}/status`, {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ status: newStatus })
-                });
-                const data = await response.json();
-                displayResult('statusUpdateResult', data, !response.ok);
-            } catch (error) {
-                displayResult('statusUpdateResult', { error: error.message }, true);
+            if (!messageId || !newStatus) {
+                displayResult('statusUpdateResult', { error: '메시지 ID와 상태를 모두 선택해주세요.' }, true);
+                return;
             }
+
+            const xhr = new XMLHttpRequest();
+            xhr.open('PATCH', '/api/intake/messages/' + messageId + '/status', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    try {
+                        const data = JSON.parse(xhr.responseText);
+                        displayResult('statusUpdateResult', data, xhr.status !== 200);
+                    } catch (parseError) {
+                        displayResult('statusUpdateResult', { error: 'Parse error: ' + parseError.message }, true);
+                    }
+                }
+            };
+            
+            xhr.onerror = function() {
+                displayResult('statusUpdateResult', { error: 'Network error' }, true);
+            };
+            
+            xhr.send(JSON.stringify({ status: newStatus }));
         });
 
         // Health Check
-        document.getElementById('healthCheck').addEventListener('click', async () => {
-            try {
-                const response = await fetch('/health');
-                const data = await response.json();
-                displayResult('healthResult', data, !response.ok);
-            } catch (error) {
-                displayResult('healthResult', { error: error.message }, true);
-            }
+        document.getElementById('healthCheck').addEventListener('click', function() {
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', '/health', true);
+            xhr.setRequestHeader('Accept', 'application/json');
+            
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    try {
+                        const data = JSON.parse(xhr.responseText);
+                        displayResult('healthResult', data, xhr.status !== 200);
+                    } catch (parseError) {
+                        displayResult('healthResult', { error: 'Parse error: ' + parseError.message }, true);
+                    }
+                }
+            };
+            
+            xhr.onerror = function() {
+                displayResult('healthResult', { error: 'Network error' }, true);
+            };
+            
+            xhr.send();
         });
 
         // LLM Management Functions
-        async function loadLLMStatus() {
-            try {
-                const response = await fetch('/api/intake/llm/status');
-                const data = await response.json();
-                
-                if (data.success) {
-                    const status = data.data;
-                    document.getElementById('llmStatusText').textContent = status.enabled ? '활성화됨' : '비활성화됨';
-                    document.getElementById('llmModel').textContent = status.config.model || '-';
-                    document.getElementById('llmAvailable').textContent = status.available ? '✅ 사용 가능' : '❌ 사용 불가';
-                    document.getElementById('llmToggle').checked = status.enabled;
-                    
-                    // Update status color
-                    const statusEl = document.getElementById('llmStatusText');
-                    statusEl.className = status.enabled && status.available ? 'text-green-600 font-medium' : 'text-red-600 font-medium';
-                } else {
-                    document.getElementById('llmStatusText').textContent = '오류';
-                    document.getElementById('llmStatusText').className = 'text-red-600 font-medium';
-                }
-            } catch (error) {
-                console.error('Failed to load LLM status:', error);
-                document.getElementById('llmStatusText').textContent = '연결 실패';
-                document.getElementById('llmStatusText').className = 'text-red-600 font-medium';
+        function loadLLMStatus() {
+            console.log('🔄 Loading LLM status...');
+            
+            // Check if elements exist first
+            const statusTextEl = document.getElementById('llmStatusText');
+            const modelEl = document.getElementById('llmModel');
+            const availableEl = document.getElementById('llmAvailable');
+            const toggleEl = document.getElementById('llmToggle');
+            
+            console.log('🔍 DOM elements check:', { 
+                statusTextEl: !!statusTextEl, 
+                modelEl: !!modelEl, 
+                availableEl: !!availableEl, 
+                toggleEl: !!toggleEl 
+            });
+            
+            if (!statusTextEl) {
+                console.error('❌ llmStatusText element not found!');
+                return;
             }
+            
+            // Use XMLHttpRequest for better compatibility
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', '/api/intake/llm/status', true);
+            xhr.setRequestHeader('Accept', 'application/json');
+            
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        try {
+                            const data = JSON.parse(xhr.responseText);
+                            console.log('📊 LLM status response:', data);
+                            
+                            if (data.success) {
+                                const status = data.data;
+                                console.log('✅ LLM status data:', status);
+                                
+                                statusTextEl.textContent = status.enabled ? '활성화됨' : '비활성화됨';
+                                if (modelEl) modelEl.textContent = status.config.model || '-';
+                                if (availableEl) availableEl.textContent = status.available ? '✅ 사용 가능' : '❌ 사용 불가';
+                                if (toggleEl) toggleEl.checked = status.enabled;
+                                
+                                // Update status color
+                                statusTextEl.className = status.enabled && status.available ? 'text-green-600 font-medium' : 'text-red-600 font-medium';
+                                
+                                console.log('✅ LLM status UI updated successfully');
+                            } else {
+                                console.error('❌ LLM status API failed:', data);
+                                statusTextEl.textContent = '오류';
+                                statusTextEl.className = 'text-red-600 font-medium';
+                            }
+                        } catch (parseError) {
+                            console.error('❌ Parse error:', parseError);
+                            statusTextEl.textContent = '파싱 오류';
+                            statusTextEl.className = 'text-red-600 font-medium';
+                        }
+                    } else {
+                        console.error('❌ HTTP error:', xhr.status);
+                        statusTextEl.textContent = 'HTTP 오류: ' + xhr.status;
+                        statusTextEl.className = 'text-red-600 font-medium';
+                    }
+                }
+            };
+            
+            xhr.onerror = function() {
+                console.error('❌ Network error');
+                statusTextEl.textContent = '네트워크 오류';
+                statusTextEl.className = 'text-red-600 font-medium';
+            };
+            
+            xhr.send();
         }
 
         // LLM Toggle
-        document.getElementById('llmToggle').addEventListener('change', async (e) => {
+        document.getElementById('llmToggle').addEventListener('change', function(e) {
             const enabled = e.target.checked;
             
-            try {
-                const response = await fetch('/api/intake/llm/toggle', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ enabled })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    await loadLLMStatus(); // Refresh status
-                    alert(`LLM 서비스가 ${enabled ? '활성화' : '비활성화'}되었습니다.`);
-                } else {
-                    e.target.checked = !enabled; // Revert toggle
-                    alert('LLM 설정 변경에 실패했습니다: ' + data.error);
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '/api/intake/llm/toggle', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        try {
+                            const data = JSON.parse(xhr.responseText);
+                            if (data.success) {
+                                loadLLMStatus(); // Refresh status
+                                alert(`LLM 서비스가 ${enabled ? '활성화' : '비활성화'}되었습니다.`);
+                            } else {
+                                e.target.checked = !enabled; // Revert toggle
+                                alert('LLM 설정 변경에 실패했습니다: ' + data.error);
+                            }
+                        } catch (parseError) {
+                            e.target.checked = !enabled; // Revert toggle
+                            alert('응답 파싱 오류: ' + parseError.message);
+                        }
+                    } else {
+                        e.target.checked = !enabled; // Revert toggle
+                        alert('HTTP 오류: ' + xhr.status);
+                    }
                 }
-            } catch (error) {
+            };
+            
+            xhr.onerror = function() {
                 e.target.checked = !enabled; // Revert toggle
-                alert('LLM 설정 변경 중 오류가 발생했습니다: ' + error.message);
-            }
+                alert('네트워크 오류가 발생했습니다.');
+            };
+            
+            xhr.send(JSON.stringify({ enabled: enabled }));
         });
 
         // LLM Test
-        document.getElementById('testLLM').addEventListener('click', async () => {
+        document.getElementById('testLLM').addEventListener('click', function() {
             const text = document.getElementById('llmTestText').value.trim();
             
             if (!text) {
@@ -460,138 +611,194 @@
                 return;
             }
             
-            try {
-                const response = await fetch('/api/intake/llm/test', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text })
-                });
-                
-                const data = await response.json();
-                displayResult('llmTestResult', data, !response.ok);
-            } catch (error) {
-                displayResult('llmTestResult', { error: error.message }, true);
-            }
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '/api/intake/llm/test', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    try {
+                        const data = JSON.parse(xhr.responseText);
+                        displayResult('llmTestResult', data, xhr.status !== 200);
+                    } catch (parseError) {
+                        displayResult('llmTestResult', { error: 'Parse error: ' + parseError.message }, true);
+                    }
+                }
+            };
+            
+            xhr.onerror = function() {
+                displayResult('llmTestResult', { error: 'Network error' }, true);
+            };
+            
+            xhr.send(JSON.stringify({ text: text }));
         });
 
         // Refresh LLM Status
         document.getElementById('refreshLLMStatus').addEventListener('click', loadLLMStatus);
+        
+        // Check Current Status
+        document.getElementById('checkCurrentStatus').addEventListener('click', function() {
+            const statusText = document.getElementById('llmStatusText').textContent;
+            alert('LLM Status: ' + statusText);
+        });
+        
+        // Manual Load Status
+        document.getElementById('manualLoadStatus').addEventListener('click', function() {
+            loadLLMStatus();
+            alert('LLM 상태 로드 함수를 수동으로 호출했습니다.');
+        });
 
         // Load LLM status on page load
+        console.log('🚀 Page loaded, loading LLM status...');
+        console.log('🔍 Testing if script is running...');
+        
+        // Test if DOM elements are accessible
+        setTimeout(() => {
+            const testEl = document.getElementById('llmStatusText');
+            console.log('🧪 Test element found:', !!testEl);
+            if (testEl) {
+                console.log('🧪 Test element content:', testEl.textContent);
+                // Force update the text to see if DOM manipulation works
+                testEl.textContent = '테스트 중...';
+                testEl.style.color = 'blue';
+            }
+        }, 100);
+        
         loadLLMStatus();
-            document.getElementById('enableLLMAnalysis').addEventListener('click', async () => {
-                const button = document.getElementById('enableLLMAnalysis');
-                const originalText = button.textContent;
-                
-                try {
-                    button.textContent = '🤖 LLM 분석 중... (30초 대기)';
-                    button.disabled = true;
-                    
-                    // Force enable LLM for this analysis
-                    const filteredData = applyFilters(currentData, getFilterValues());
-                    
-                    // Temporarily enable LLM
-                    const originalUpdateWordCloud = updateWordCloud;
-                    window.updateWordCloud = async function(data) {
-                        // Force LLM analysis
-                        const useLLM = true;
-                        let keywordFrequency = {};
-                        let analysisMethod = 'basic';
-                        
-                        if (useLLM) {
-                            try {
-                                console.log('🤖 Manual LLM keyword extraction...');
-                                const messages = data.map(item => item.content || item.maskedContent || '').filter(content => content.length > 0);
-                                
-                                const llmResponse = await fetch('/api/intake/llm/keywords', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ messages: messages.slice(0, 30) })
-                                });
-                                
-                                if (llmResponse.ok) {
-                                    const llmData = await llmResponse.json();
-                                    if (llmData.success && llmData.data.keywords) {
-                                        llmData.data.keywords.forEach(kw => {
-                                            keywordFrequency[kw.keyword] = kw.count;
-                                        });
-                                        analysisMethod = 'llm-enhanced';
-                                        console.log('✅ Manual LLM analysis complete');
-                                    }
-                                }
-                            } catch (error) {
-                                console.log('❌ Manual LLM failed:', error);
-                            }
-                        }
-                        
-                        // Update displays with LLM results
-                        if (Object.keys(keywordFrequency).length > 0) {
-                            updateTopKeywords(keywordFrequency);
-                            updateCategoryKeywords(keywordFrequency);
-                            
-                            // Update word cloud stats
-                            const statsDiv = document.getElementById('wordCloudStats');
-                            if (statsDiv) {
-                                const totalWords = Object.keys(keywordFrequency).length;
-                                const methodIndicator = '🤖 LLM 향상된 분석';
-                                statsDiv.innerHTML = `
-                                    <div class="flex justify-center space-x-6 text-sm">
-                                        <span class="text-green-600">${methodIndicator}</span>
-                                        <span>총 키워드: <strong>${totalWords}개</strong></span>
-                                    </div>
-                                `;
-                            }
-                        }
-                    };
-                    
-                    await updateWordCloud(filteredData);
-                    
-                    // Restore original function
-                    window.updateWordCloud = originalUpdateWordCloud;
-                    
-                    button.textContent = '✅ LLM 분석 완료';
-                    setTimeout(() => {
-                        button.textContent = originalText;
-                        button.disabled = false;
-                    }, 3000);
-                    
-                } catch (error) {
-                    console.error('Manual LLM analysis failed:', error);
-                    button.textContent = '❌ LLM 분석 실패';
-                    setTimeout(() => {
-                        button.textContent = originalText;
-                        button.disabled = false;
-                    }, 3000);
+        
+        // Also load status after a short delay in case of timing issues
+        setTimeout(() => {
+            console.log('🔄 Delayed LLM status load...');
+            loadLLMStatus();
+        }, 1000);
+
+        // Test Apartment Parsing
+        document.getElementById('testApartmentParsing').addEventListener('click', function() {
+            const text = document.getElementById('llmTestText').value.trim();
+            
+            if (!text) {
+                alert('테스트할 텍스트를 입력해주세요.');
+                return;
+            }
+            
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '/api/intake/llm/apartment', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    try {
+                        const data = JSON.parse(xhr.responseText);
+                        displayResult('apartmentParsingResult', data, xhr.status !== 200);
+                    } catch (parseError) {
+                        displayResult('apartmentParsingResult', { error: 'Parse error: ' + parseError.message }, true);
+                    }
                 }
+            };
+            
+            xhr.onerror = function() {
+                displayResult('apartmentParsingResult', { error: 'Network error' }, true);
+            };
+            
+            xhr.send(JSON.stringify({ text: text }));
+        });
+        // Simplified LLM Analysis (removed complex async function that was causing syntax errors)
+        if (document.getElementById('enableLLMAnalysis')) {
+            document.getElementById('enableLLMAnalysis').addEventListener('click', function() {
+                alert('LLM 분석 기능은 현재 단순화되었습니다. 개별 LLM 테스트 버튼을 사용해주세요.');
             });
         }
 
         // Test LLM Keywords
-        document.getElementById('testLLMKeywords').addEventListener('click', async () => {
-            try {
-                // Get sample messages
-                const response = await fetch('/api/intake/messages?limit=50');
-                const data = await response.json();
-                
-                if (!data.success) {
-                    alert('메시지 로드 실패: ' + data.error);
-                    return;
-                }
+        document.getElementById('testLLMKeywords').addEventListener('click', function() {
+            console.log('🔍 Starting LLM keywords analysis...');
+            
+            // Show loading message
+            displayResult('llmKeywordsResult', { message: '키워드 분석 중... 잠시만 기다려주세요.' }, false);
+            
+            // First get sample messages
+            const xhr1 = new XMLHttpRequest();
+            xhr1.open('GET', '/api/intake/messages?limit=50', true);
+            xhr1.setRequestHeader('Accept', 'application/json');
+            
+            xhr1.onreadystatechange = function() {
+                if (xhr1.readyState === 4) {
+                    console.log('📡 Messages API response:', xhr1.status);
+                    if (xhr1.status === 200) {
+                        try {
+                            const data = JSON.parse(xhr1.responseText);
+                            console.log('📊 Messages data:', data);
+                            
+                            if (!data.success) {
+                                displayResult('llmKeywordsResult', { error: '메시지 로드 실패: ' + data.error }, true);
+                                return;
+                            }
 
-                const messages = data.data.map(msg => msg.content || msg.maskedContent);
-                
-                const keywordResponse = await fetch('/api/intake/llm/keywords', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ messages })
-                });
-                
-                const keywordData = await keywordResponse.json();
-                displayResult('llmKeywordsResult', keywordData, !keywordResponse.ok);
-            } catch (error) {
-                displayResult('llmKeywordsResult', { error: error.message }, true);
-            }
+                            // Extract both message content and apartment unit info
+                            const messagesWithUnits = data.data.map(function(msg) {
+                                const messageData = {
+                                    content: msg.content || msg.maskedContent,
+                                    apartmentUnit: msg.apartmentUnit
+                                };
+                                return messageData;
+                            });
+                            
+                            const messages = messagesWithUnits.map(function(msg) { 
+                                return msg.content; 
+                            });
+                            
+                            console.log('📝 Extracted messages:', messages.length, 'messages');
+                            console.log('🏢 Messages with apartment units:', messagesWithUnits.filter(function(msg) { return msg.apartmentUnit; }).length);
+                            
+                            // Now send to LLM keywords endpoint
+                            const xhr2 = new XMLHttpRequest();
+                            xhr2.open('POST', '/api/intake/llm/keywords', true);
+                            xhr2.setRequestHeader('Content-Type', 'application/json');
+                            
+                            xhr2.onreadystatechange = function() {
+                                if (xhr2.readyState === 4) {
+                                    console.log('🤖 LLM Keywords API response:', xhr2.status);
+                                    try {
+                                        const keywordData = JSON.parse(xhr2.responseText);
+                                        console.log('✅ Keywords result:', keywordData);
+                                        displayResult('llmKeywordsResult', keywordData, xhr2.status !== 200);
+                                    } catch (parseError) {
+                                        console.error('❌ Parse error:', parseError);
+                                        displayResult('llmKeywordsResult', { error: 'Parse error: ' + parseError.message }, true);
+                                    }
+                                }
+                            };
+                            
+                            xhr2.onerror = function() {
+                                displayResult('llmKeywordsResult', { error: 'Network error' }, true);
+                            };
+                            
+                            const requestData = { 
+                                messages: messages,
+                                messagesWithUnits: messagesWithUnits 
+                            };
+                            
+                            console.log('📤 Sending to LLM keywords API:', requestData);
+                            xhr2.send(JSON.stringify(requestData));
+                            
+                        } catch (parseError) {
+                            displayResult('llmKeywordsResult', { error: 'Parse error: ' + parseError.message }, true);
+                        }
+                    } else {
+                        displayResult('llmKeywordsResult', { error: 'HTTP error: ' + xhr1.status }, true);
+                    }
+                }
+            };
+            
+            xhr1.onerror = function() {
+                displayResult('llmKeywordsResult', { error: 'Network error' }, true);
+            };
+            
+            xhr1.send();
         });
+        
+        // Script loaded successfully
+        console.log('✅ JavaScript loaded successfully - no syntax errors');
     </script>
 </body>
 </html>

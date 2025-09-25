@@ -114,7 +114,7 @@ export class LLMController {
      */
     async extractKeywords(req: Request, res: Response): Promise<void> {
         try {
-            const { messages } = req.body;
+            const { messages, messagesWithUnits } = req.body;
             
             if (!messages || !Array.isArray(messages)) {
                 res.status(400).json({
@@ -135,11 +135,27 @@ export class LLMController {
 
             const keywords = await llmService.extractKeywords(messages);
             
+            // Add apartment unit analysis if available
+            let apartmentUnits: any[] = [];
+            if (messagesWithUnits && Array.isArray(messagesWithUnits)) {
+                apartmentUnits = messagesWithUnits
+                    .filter((msg: any) => msg.apartmentUnit)
+                    .map((msg: any) => ({
+                        dong: msg.apartmentUnit.dong,
+                        ho: msg.apartmentUnit.ho,
+                        floor: msg.apartmentUnit.floor,
+                        formatted: msg.apartmentUnit.formatted,
+                        confidence: msg.apartmentUnit.confidence
+                    }));
+            }
+            
             res.json({
                 success: true,
                 data: {
                     keywords,
+                    apartmentUnits,
                     total: keywords.length,
+                    apartmentUnitsCount: apartmentUnits.length,
                     method: 'llm-analysis'
                 }
             });
@@ -148,6 +164,46 @@ export class LLMController {
             res.status(500).json({
                 success: false,
                 error: 'Failed to extract keywords'
+            });
+        }
+    }
+
+    /**
+     * Test apartment unit parsing
+     */
+    async testApartmentParsing(req: Request, res: Response): Promise<void> {
+        try {
+            const { text } = req.body;
+            
+            if (!text || typeof text !== 'string') {
+                res.status(400).json({
+                    success: false,
+                    error: 'text is required and must be a string'
+                });
+                return;
+            }
+
+            // Import apartment parser
+            const { apartmentParser } = await import('../../../shared/services/apartment-parser.service');
+            const result = apartmentParser.parseApartmentUnits(text);
+            
+            res.json({
+                success: true,
+                data: {
+                    input: text,
+                    result: {
+                        hasLocation: result.hasLocation,
+                        units: result.units,
+                        rawMatches: result.rawMatches,
+                        summary: apartmentParser.getUnitSummary(result)
+                    }
+                }
+            });
+        } catch (error) {
+            logger.error('Error testing apartment parsing', { error });
+            res.status(500).json({
+                success: false,
+                error: 'Failed to test apartment parsing'
             });
         }
     }

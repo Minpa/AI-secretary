@@ -26,6 +26,7 @@ router.get('/llm/status', llmController.getStatus.bind(llmController));
 router.post('/llm/toggle', llmController.toggleLLM.bind(llmController));
 router.post('/llm/test', llmController.testClassification.bind(llmController));
 router.post('/llm/keywords', llmController.extractKeywords.bind(llmController));
+router.post('/llm/apartment', llmController.testApartmentParsing.bind(llmController));
 router.get('/llm/config', llmController.getConfig.bind(llmController));
 
 // Simple test endpoint

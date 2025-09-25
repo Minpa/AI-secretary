@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug LLM Status</title>
+</head>
+<body>
+    <h1>LLM Status Debug</h1>
+    <div id="status">Loading...</div>
+    <div id="debug"></div>
+    
+    <script>
+        console.log('🚀 Debug page loaded');
+        
+        function testLLMStatus() {
+            const debugEl = document.getElementById('debug');
+            const statusEl = document.getElementById('status');
+            
+            debugEl.innerHTML += '<p>🔄 Starting LLM status test...</p>';
+            
+            // Use XMLHttpRequest for better compatibility
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', '/api/intake/llm/status', true);
+            xhr.setRequestHeader('Accept', 'application/json');
+            
+            xhr.onreadystatechange = function() {
+                debugEl.innerHTML += '<p>📡 ReadyState: ' + xhr.readyState + ', Status: ' + xhr.status + '</p>';
+                
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        try {
+                            const data = JSON.parse(xhr.responseText);
+                            debugEl.innerHTML += '<p>📊 Data: <pre>' + JSON.stringify(data, null, 2) + '</pre></p>';
+                            
+                            if (data.success) {
+                                statusEl.innerHTML = '✅ LLM Status: ' + (data.data.enabled ? 'Enabled' : 'Disabled');
+                                statusEl.style.color = 'green';
+                            } else {
+                                statusEl.innerHTML = '❌ Error: ' + data.error;
+                                statusEl.style.color = 'red';
+                            }
+                        } catch (parseError) {
+                            debugEl.innerHTML += '<p>❌ Parse Error: ' + parseError.message + '</p>';
+                            statusEl.innerHTML = '❌ Parse failed';
+                            statusEl.style.color = 'red';
+                        }
+                    } else {
+                        debugEl.innerHTML += '<p>❌ HTTP Error: ' + xhr.status + '</p>';
+                        statusEl.innerHTML = '❌ HTTP Error: ' + xhr.status;
+                        statusEl.style.color = 'red';
+                    }
+                }
+            };
+            
+            xhr.onerror = function() {
+                debugEl.innerHTML += '<p>❌ Network Error</p>';
+                statusEl.innerHTML = '❌ Network Error';
+                statusEl.style.color = 'red';
+            };
+            
+            xhr.send();
+        }
+        
+        // Test immediately and after a delay
+        testLLMStatus();
+        
+        setTimeout(function() {
+            document.getElementById('debug').innerHTML += '<p>🔄 Testing again after 2 seconds...</p>';
+            testLLMStatus();
+        }, 2000);
+    </script>
+</body>
+</html>

@@ -1,8 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
 import { IntakeService } from '../services/intake.service';
 import { ClassificationService } from '../services/classification.service';
-import { ApiResponse, IntakeChannel } from '@/shared/types';
+import { ApiResponse, IntakeChannel, ApartmentUnitInfo } from '@/shared/types';
 import { AppError } from '@/shared/middleware/error-handler';
+import { apartmentParser } from '@/shared/services/apartment-parser.service';
 
 export class IntakeController {
   private intakeService: IntakeService;

@@ -1,6 +1,7 @@
-import { IntakeMessage, IntakeChannel, IntakeStatus, Priority, MessageClassification } from '@/shared/types';
+import { IntakeMessage, IntakeChannel, IntakeStatus, Priority, MessageClassification, ApartmentUnitInfo } from '@/shared/types';
 import { PIIMaskingService } from './pii-masking.service';
 import { TicketIntegrationService } from './ticket-integration.service';
+import { apartmentParser } from '@/shared/services/apartment-parser.service';
 import { logger } from '@/shared/utils/logger';
 import { inMemoryStore } from '@/shared/database/in-memory-store';
 
@@ -26,6 +27,9 @@ export class IntakeService {
       const maskedContent = await this.piiMaskingService.maskContent(input.content);
       const maskedSender = await this.piiMaskingService.maskSender(input.sender);
 
+      // Parse apartment unit information
+      const apartmentInfo = this.parseApartmentUnit(input.content);
+
       // Determine initial priority based on channel and content
       const priority = this.determinePriority(input.channel, input.content);
 
@@ -38,6 +42,7 @@ export class IntakeService {
         maskedSender,
         priority,
         status: IntakeStatus.PENDING,
+        apartmentUnit: apartmentInfo,
         createdAt: input.createdAt || new Date(),
         updatedAt: new Date()
       };
@@ -197,6 +202,36 @@ export class IntakeService {
     }
 
     return MessageClassification.INQUIRY; // Default
+  }
+
+  private parseApartmentUnit(content: string): ApartmentUnitInfo | undefined {
+    try {
+      const parsed = apartmentParser.parseApartmentUnits(content);
+      
+      if (!parsed.hasLocation || parsed.units.length === 0) {
+        return undefined;
+      }
+
+      // Use the highest confidence unit
+      const bestUnit = parsed.units[0];
+      
+      // Only include if confidence is reasonable and unit is valid
+      if (bestUnit.confidence >= 0.6 && apartmentParser.validateUnit(bestUnit)) {
+        return {
+          dong: bestUnit.dong,
+          ho: bestUnit.ho,
+          floor: bestUnit.floor,
+          formatted: apartmentParser.formatUnit(bestUnit),
+          confidence: bestUnit.confidence,
+          rawMatches: parsed.rawMatches
+        };
+      }
+
+      return undefined;
+    } catch (error) {
+      logger.warn('Failed to parse apartment unit', { error, content: content.substring(0, 100) });
+      return undefined;
+    }
   }
 
   private generateId(): string {
