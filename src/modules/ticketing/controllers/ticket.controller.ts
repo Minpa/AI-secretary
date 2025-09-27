@@ -64,6 +64,26 @@ export class TicketController {
     }
   };
 
+  getTicketByMessageId = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { messageId } = req.params;
+      const ticket = await this.ticketService.getTicketByMessageId(messageId);
+
+      if (!ticket) {
+        throw new AppError('Ticket not found for this message', 404);
+      }
+
+      const response: ApiResponse = {
+        success: true,
+        data: ticket
+      };
+
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+
   updateTicket = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { id } = req.params;

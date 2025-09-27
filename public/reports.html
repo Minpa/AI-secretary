@@ -291,9 +291,14 @@
                     <h3 class="text-lg font-medium text-gray-900">🏢 아파트 동/호수별 접수 현황</h3>
                     <p class="text-sm text-gray-500 mt-1">가장 많이 접수하는 세대 및 상세 이력</p>
                 </div>
-                <button id="exportUnits" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 text-sm">
-                    📊 세대별 데이터 내보내기
-                </button>
+                <div class="flex space-x-2">
+                    <button id="exportUnits" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 text-sm">
+                        📊 세대별 데이터 내보내기
+                    </button>
+                    <button id="testModalBtn" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 text-sm">
+                        🧪 테스트 모달
+                    </button>
+                </div>
             </div>
             <div class="p-6">
                 <!-- Unit Metrics -->
@@ -348,8 +353,101 @@
             </div>
         </div>
 
+        <!-- Ticket Detail Modal -->
+        <div id="ticketDetailModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden" style="z-index: 9999;">
+            <div class="relative top-10 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-2/3 shadow-lg rounded-md bg-white">
+                <div class="mt-3">
+                    <!-- Modal Header -->
+                    <div class="flex justify-between items-center pb-3 border-b">
+                        <h3 class="text-lg font-medium text-gray-900" id="ticketModalTitle">티켓 상세 정보</h3>
+                        <button id="closeTicketModal" class="text-gray-400 hover:text-gray-600">
+                            <span class="sr-only">닫기</span>
+                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Modal Content -->
+                    <div class="mt-4" id="ticketModalContent">
+                        <!-- Loading state -->
+                        <div id="ticketModalLoading" class="text-center py-8">
+                            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
+                            <p class="mt-2 text-gray-600">티켓 정보를 불러오는 중...</p>
+                        </div>
+
+                        <!-- Ticket details will be loaded here -->
+                        <div id="ticketModalDetails" class="hidden">
+                            <!-- Ticket Info Grid -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                                <div class="bg-blue-50 p-4 rounded-lg">
+                                    <div class="text-sm font-medium text-blue-900">티켓 번호</div>
+                                    <div class="text-lg font-bold text-blue-600" id="ticketNumber">-</div>
+                                </div>
+                                <div class="bg-green-50 p-4 rounded-lg">
+                                    <div class="text-sm font-medium text-green-900">상태</div>
+                                    <div class="text-lg font-bold text-green-600" id="ticketStatus">-</div>
+                                </div>
+                                <div class="bg-purple-50 p-4 rounded-lg">
+                                    <div class="text-sm font-medium text-purple-900">우선순위</div>
+                                    <div class="text-lg font-bold text-purple-600" id="ticketPriority">-</div>
+                                </div>
+                                <div class="bg-orange-50 p-4 rounded-lg">
+                                    <div class="text-sm font-medium text-orange-900">카테고리</div>
+                                    <div class="text-lg font-bold text-orange-600" id="ticketCategory">-</div>
+                                </div>
+                            </div>
+
+                            <!-- Ticket Details -->
+                            <div class="bg-white border rounded-lg p-6 mb-4">
+                                <h4 class="text-lg font-medium text-gray-900 mb-4">티켓 정보</h4>
+                                <div class="space-y-3">
+                                    <div>
+                                        <span class="text-sm font-medium text-gray-700">제목:</span>
+                                        <span class="ml-2 text-sm text-gray-900" id="ticketTitle">-</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-sm font-medium text-gray-700">설명:</span>
+                                        <div class="ml-2 mt-1 text-sm text-gray-900" id="ticketDescription">-</div>
+                                    </div>
+                                    <div>
+                                        <span class="text-sm font-medium text-gray-700">신고자:</span>
+                                        <span class="ml-2 text-sm text-gray-900" id="ticketReporter">-</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-sm font-medium text-gray-700">생성일:</span>
+                                        <span class="ml-2 text-sm text-gray-900" id="ticketCreated">-</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="flex justify-end space-x-3">
+                                <button id="openFullTicketBtn" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">
+                                    전체 티켓 페이지 열기
+                                </button>
+                                <button id="closeTicketModalBtn" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400">
+                                    닫기
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Error state -->
+                        <div id="ticketModalError" class="hidden text-center py-8">
+                            <div class="text-red-600 text-4xl mb-4">⚠️</div>
+                            <h4 class="text-lg font-bold text-gray-900 mb-2">티켓을 찾을 수 없습니다</h4>
+                            <p class="text-gray-600 mb-4" id="ticketErrorMessage">해당 메시지의 티켓이 존재하지 않습니다.</p>
+                            <button id="closeTicketErrorBtn" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400">
+                                닫기
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Unit History Modal -->
-        <div id="unitHistoryModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+        <div id="unitHistoryModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden" style="z-index: 9000;">
             <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
                 <div class="mt-3">
                     <!-- Modal Header -->
@@ -2679,8 +2777,9 @@ WordCloud: ${wordCloudAvailable ? '✅ 로드됨' : '❌ 로드 실패'}
                             </span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <button onclick="openUnitHistory(${unit.apartmentUnit.dong}, ${unit.apartmentUnit.ho})" 
-                                    class="text-indigo-600 hover:text-indigo-900">
+                            <button class="unit-detail-btn text-indigo-600 hover:text-indigo-900" 
+                                    data-dong="${unit.apartmentUnit.dong}" 
+                                    data-ho="${unit.apartmentUnit.ho}">
                                 상세 보기
                             </button>
                         </td>
@@ -2688,10 +2787,121 @@ WordCloud: ${wordCloudAvailable ? '✅ 로드됨' : '❌ 로드 실패'}
                     
                     tableBody.appendChild(row);
                 });
+                
+                // Add event listeners to the newly created buttons
+                addUnitDetailButtonListeners();
             } else {
                 tableBody.innerHTML = '';
                 emptyState.classList.remove('hidden');
             }
+        }
+        
+        // Add event listeners to unit detail buttons
+        function addUnitDetailButtonListeners() {
+            const buttons = document.querySelectorAll('.unit-detail-btn');
+            buttons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const dong = parseInt(this.getAttribute('data-dong'));
+                    const ho = parseInt(this.getAttribute('data-ho'));
+                    console.log(`🏠 Button clicked for ${dong}동 ${ho}호`);
+                    openUnitHistory(dong, ho);
+                });
+            });
+        }
+
+        // Show ticket detail in modal
+        async function navigateToTicketDetail(messageId) {
+            try {
+                console.log(`🎫 Loading ticket detail for message: ${messageId}`);
+                
+                // Show ticket modal
+                const modal = document.getElementById('ticketDetailModal');
+                modal.classList.remove('hidden');
+                
+                // Show loading state
+                document.getElementById('ticketModalLoading').classList.remove('hidden');
+                document.getElementById('ticketModalDetails').classList.add('hidden');
+                document.getElementById('ticketModalError').classList.add('hidden');
+                
+                // Get ticket ID from message ID
+                const response = await fetch(`/api/tickets/by-message/${messageId}`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const ticketId = data.data.id;
+                    
+                    // Load full ticket details
+                    const ticketResponse = await fetch(`/api/tickets/${ticketId}`);
+                    
+                    if (ticketResponse.ok) {
+                        const ticketData = await ticketResponse.json();
+                        displayTicketDetails(ticketData.data, ticketId);
+                    } else {
+                        showTicketError('티켓 상세 정보를 불러올 수 없습니다.');
+                    }
+                } else {
+                    showTicketError('해당 메시지의 티켓을 찾을 수 없습니다.');
+                }
+            } catch (error) {
+                console.error('❌ Error loading ticket detail:', error);
+                showTicketError('티켓 정보를 불러오는 중 오류가 발생했습니다.');
+            }
+        }
+
+        // Display ticket details in modal
+        function displayTicketDetails(ticket, ticketId) {
+            // Hide loading, show details
+            document.getElementById('ticketModalLoading').classList.add('hidden');
+            document.getElementById('ticketModalDetails').classList.remove('hidden');
+            
+            // Update modal title
+            document.getElementById('ticketModalTitle').textContent = `티켓 상세 정보 - ${ticket.number}`;
+            
+            // Update ticket info
+            document.getElementById('ticketNumber').textContent = ticket.number;
+            document.getElementById('ticketStatus').textContent = getStatusDisplayName(ticket.status);
+            document.getElementById('ticketPriority').textContent = getPriorityDisplayName(ticket.priority);
+            document.getElementById('ticketCategory').textContent = getCategoryDisplayName(ticket.category);
+            
+            // Update ticket details
+            document.getElementById('ticketTitle').textContent = ticket.title;
+            document.getElementById('ticketDescription').textContent = ticket.description;
+            document.getElementById('ticketReporter').textContent = ticket.reporterId;
+            document.getElementById('ticketCreated').textContent = new Date(ticket.createdAt).toLocaleString('ko-KR');
+            
+            // Set up full ticket page button
+            document.getElementById('openFullTicketBtn').onclick = function() {
+                window.open(`/ticket-detail.html?id=${ticketId}`, '_blank');
+            };
+        }
+
+        // Show ticket error in modal
+        function showTicketError(message) {
+            document.getElementById('ticketModalLoading').classList.add('hidden');
+            document.getElementById('ticketModalDetails').classList.add('hidden');
+            document.getElementById('ticketModalError').classList.remove('hidden');
+            document.getElementById('ticketErrorMessage').textContent = message;
+        }
+
+        // Helper functions for display names
+        function getStatusDisplayName(status) {
+            const statusMap = {
+                'open': '열림',
+                'in_progress': '진행중',
+                'resolved': '해결됨',
+                'closed': '닫힘'
+            };
+            return statusMap[status] || status;
+        }
+
+        function getPriorityDisplayName(priority) {
+            const priorityMap = {
+                'low': '낮음',
+                'medium': '보통',
+                'high': '높음',
+                'urgent': '긴급'
+            };
+            return priorityMap[priority] || priority;
         }
 
         // Show unit analytics error
@@ -2785,7 +2995,8 @@ WordCloud: ${wordCloudAvailable ? '✅ 로드됨' : '❌ 로드 실패'}
                 
                 data.requests.forEach(request => {
                     const row = document.createElement('tr');
-                    row.className = 'hover:bg-gray-50';
+                    row.className = 'hover:bg-blue-50 cursor-pointer transition-colors duration-200';
+                    row.setAttribute('data-message-id', request.id);
                     
                     // Format date
                     const requestDate = new Date(request.createdAt);
@@ -2829,8 +3040,14 @@ WordCloud: ${wordCloudAvailable ? '✅ 로드됨' : '❌ 로드 실패'}
                         </td>
                         <td class="px-4 py-3 text-sm text-gray-600" title="${request.maskedContent}">
                             ${truncatedContent}
+                            <div class="text-xs text-blue-600 mt-1">🔍 클릭하여 티켓 상세보기</div>
                         </td>
                     `;
+                    
+                    // Add click handler to navigate to ticket detail
+                    row.addEventListener('click', function() {
+                        navigateToTicketDetail(request.id);
+                    });
                     
                     tableBody.appendChild(row);
                 });
@@ -2996,8 +3213,26 @@ WordCloud: ${wordCloudAvailable ? '✅ 로드됨' : '❌ 로드 실패'}
         // Event listeners for unit analytics
         document.getElementById('exportUnits').addEventListener('click', exportUnitAnalytics);
         
+        // Test modal button
+        document.getElementById('testModalBtn').addEventListener('click', function() {
+            openUnitHistory(101, 1502);
+        });
+        
         document.getElementById('closeModal').addEventListener('click', function() {
             document.getElementById('unitHistoryModal').classList.add('hidden');
+        });
+
+        // Ticket modal event listeners
+        document.getElementById('closeTicketModal').addEventListener('click', function() {
+            document.getElementById('ticketDetailModal').classList.add('hidden');
+        });
+
+        document.getElementById('closeTicketModalBtn').addEventListener('click', function() {
+            document.getElementById('ticketDetailModal').classList.add('hidden');
+        });
+
+        document.getElementById('closeTicketErrorBtn').addEventListener('click', function() {
+            document.getElementById('ticketDetailModal').classList.add('hidden');
         });
         
         document.getElementById('modalPrevPage').addEventListener('click', function() {

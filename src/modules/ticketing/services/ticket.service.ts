@@ -73,6 +73,18 @@ export class TicketService {
     }
   }
 
+  async getTicketByMessageId(messageId: string): Promise<Ticket | null> {
+    try {
+      const tickets = inMemoryStore.getTickets(1000); // Get all tickets
+      const ticket = tickets.find(t => t.intakeMessageId === messageId);
+      logger.info('Retrieved ticket by message ID', { messageId, ticketId: ticket?.id, found: !!ticket });
+      return ticket || null;
+    } catch (error) {
+      logger.error('Error getting ticket by message ID', { error, messageId });
+      throw error;
+    }
+  }
+
   async updateTicket(id: string, updates: Partial<Ticket>): Promise<Ticket> {
     try {
       // TODO: Get existing ticket from database

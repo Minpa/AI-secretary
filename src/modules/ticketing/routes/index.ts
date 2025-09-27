@@ -7,6 +7,7 @@ const ticketController = new TicketController();
 // Ticket CRUD
 router.post('/', ticketController.createTicket);
 router.get('/', ticketController.getTickets);
+router.get('/by-message/:messageId', ticketController.getTicketByMessageId);
 router.get('/:id', ticketController.getTicket);
 router.patch('/:id', ticketController.updateTicket);
 router.patch('/:id/assign', ticketController.assignTicket);
