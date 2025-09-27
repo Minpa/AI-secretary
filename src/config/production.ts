@@ -11,7 +11,7 @@ export const production: Config = {
     name: process.env.DB_NAME || 'ai_secretary',
     username: process.env.DB_USERNAME || 'postgres',
     password: process.env.DB_PASSWORD || '',
-    ssl: true
+    ssl: process.env.DB_SSL === 'false' ? false : true
   },
   redis: {
     host: process.env.REDIS_HOST || 'localhost',
@@ -19,7 +19,7 @@ export const production: Config = {
     password: process.env.REDIS_PASSWORD
   },
   cors: {
-    allowedOrigins: process.env.ALLOWED_ORIGINS?.split(',') || ['https://yourdomain.com']
+    allowedOrigins: process.env.CORS_ALLOWED_ORIGINS?.split(',') || ['https://yourdomain.com']
   },
   jwt: {
     secret: process.env.JWT_SECRET || 'your-secret-key',
