@@ -532,7 +532,13 @@
             <div class="bg-white shadow rounded-lg">
                 <div class="px-6 py-4 border-b border-gray-200">
                     <h3 class="text-lg font-medium text-gray-900">상위 키워드 순위</h3>
-                    <p class="text-sm text-gray-500 mt-1">가장 자주 언급되는 키워드 TOP 10</p>
+                    <p class="text-sm text-gray-500 mt-1">가장 자주 언급되는 키워드 TOP 10 (분류 가중치 포함)</p>
+                    <div class="mt-2 p-2 bg-blue-50 rounded-md">
+                        <p class="text-xs text-blue-700">
+                            💡 <strong>카운트 방식:</strong> 메시지 분류(×3) + 내용 언급(×1)으로 계산됩니다. 
+                            현재 <span class="font-semibold">11개 메시지</span>에서 분석된 결과입니다.
+                        </p>
+                    </div>
                 </div>
                 <div class="p-6">
                     <div id="topKeywords" class="space-y-3">
