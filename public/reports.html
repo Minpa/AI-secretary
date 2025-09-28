@@ -1342,6 +1342,15 @@
             } catch (error) {
                 console.error('❌ Error updating category keywords:', error);
             }
+            
+            // Generate AI insights
+            console.log('🤖 Generating AI insights');
+            try {
+                generateAIInsights(keywordFrequency, currentData);
+                console.log('✅ AI insights generated');
+            } catch (error) {
+                console.error('❌ Error generating AI insights:', error);
+            }
         }
 
         function extractKoreanKeywords(text) {
@@ -2627,6 +2636,9 @@ WordCloud: ${wordCloudAvailable ? '✅ 로드됨' : '❌ 로드 실패'}
                 // Update displays with LLM indicators
                 updateTopKeywords(keywordFrequency);
                 updateCategoryKeywords(keywordFrequency);
+                
+                // Generate AI insights with LLM data
+                generateAIInsights(keywordFrequency, filteredData);
                 
                 // Add LLM indicators to section titles with animation
                 const topKeywordsTitle = Array.from(document.querySelectorAll('h3')).find(h3 => h3.textContent.includes('상위 키워드'));
