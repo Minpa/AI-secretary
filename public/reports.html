@@ -2763,6 +2763,7 @@ WordCloud: ${wordCloudAvailable ? '✅ 로드됨' : '❌ 로드 실패'}
         async function loadUnitAnalytics() {
             try {
                 console.log('🏢 Loading unit analytics...');
+                console.log('🏢 Current unit filters:', currentUnitFilters);
                 
                 // Build query parameters from current filters
                 const params = new URLSearchParams();
@@ -2780,8 +2781,11 @@ WordCloud: ${wordCloudAvailable ? '✅ 로드됨' : '❌ 로드 실패'}
                 const response = await fetch(`/api/reports/units/analytics?${params}`);
                 const data = await response.json();
                 
+                console.log('🏢 Unit analytics API response:', data);
+                
                 if (data.success) {
                     currentUnitData = data.data;
+                    console.log('🏢 Unit data structure:', data.data);
                     updateUnitAnalyticsDisplay(data.data);
                     console.log('✅ Unit analytics loaded successfully');
                 } else {
@@ -2796,6 +2800,7 @@ WordCloud: ${wordCloudAvailable ? '✅ 로드됨' : '❌ 로드 실패'}
 
         // Update unit analytics display
         function updateUnitAnalyticsDisplay(data) {
+            console.log('🏢 Updating unit analytics display with data:', data);
             // Update metrics
             document.getElementById('totalActiveUnits').textContent = data.summary.totalActiveUnits || 0;
             document.getElementById('avgRequestsPerUnit').textContent = data.metrics.averageRequestsPerUnit || 0;
