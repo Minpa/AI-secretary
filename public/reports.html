@@ -420,6 +420,10 @@
                                         <span class="text-sm font-medium text-gray-700">생성일:</span>
                                         <span class="ml-2 text-sm text-gray-900" id="ticketCreated">-</span>
                                     </div>
+                                    <div>
+                                        <span class="text-sm font-medium text-gray-700">담당자:</span>
+                                        <span class="ml-2 text-sm text-gray-900" id="ticketAssignee">-</span>
+                                    </div>
                                 </div>
                             </div>
 
@@ -669,6 +673,37 @@
             try {
                 console.log('🚀 Loading report data...');
                 
+                // Check cache first (valid for 5 minutes)
+                const cacheKey = 'reportsData';
+                const cacheTimestamp = 'reportsDataTimestamp';
+                const cacheValidDuration = 5 * 60 * 1000; // 5 minutes
+                
+                const cachedData = localStorage.getItem(cacheKey);
+                const cachedTimestamp = localStorage.getItem(cacheTimestamp);
+                
+                if (cachedData && cachedTimestamp) {
+                    const age = Date.now() - parseInt(cachedTimestamp);
+                    if (age < cacheValidDuration) {
+                        console.log('📦 Using cached data (age:', Math.round(age/1000), 'seconds)');
+                        currentData = JSON.parse(cachedData);
+                        
+                        // Apply filters and update display
+                        const filters = getFilterValues();
+                        const filteredData = applyFilters(currentData, filters);
+                        updateStatistics(filteredData);
+                        updateKeywordAnalysis(filteredData);
+                        updateCharts(filteredData);
+                        
+                        // Update status
+                        const statusEl = document.getElementById('dataStatus');
+                        if (statusEl) {
+                            statusEl.textContent = `✅ ${currentData.length}개 메시지 로드 완료 (캐시됨)`;
+                            statusEl.className = 'text-sm text-green-600';
+                        }
+                        return;
+                    }
+                }
+                
                 // Show loading status
                 const statusEl = document.getElementById('dataStatus');
                 if (statusEl) {
@@ -694,6 +729,15 @@
                 if (messagesData.success) {
                     currentData = messagesData.data || [];
                     console.log('✅ Loaded', currentData.length, 'messages');
+                    
+                    // Cache the data
+                    try {
+                        localStorage.setItem(cacheKey, JSON.stringify(currentData));
+                        localStorage.setItem(cacheTimestamp, Date.now().toString());
+                        console.log('💾 Data cached successfully');
+                    } catch (error) {
+                        console.warn('⚠️ Failed to cache data:', error);
+                    }
                     
                     // Safety check for currentData
                     if (!Array.isArray(currentData)) {
@@ -2889,10 +2933,61 @@ WordCloud: ${wordCloudAvailable ? '✅ 로드됨' : '❌ 로드 실패'}
             document.getElementById('ticketReporter').textContent = ticket.reporterId;
             document.getElementById('ticketCreated').textContent = new Date(ticket.createdAt).toLocaleString('ko-KR');
             
+            // Update assignee info
+            displayTicketAssignee(ticket.assigneeId);
+            
             // Set up full ticket page button
             document.getElementById('openFullTicketBtn').onclick = function() {
                 window.open(`/ticket-detail.html?id=${ticketId}`, '_blank');
             };
+        }
+
+        // Staff data cache
+        let staffDataCache = null;
+
+        async function loadStaffData() {
+            if (staffDataCache) return staffDataCache;
+            
+            try {
+                const response = await fetch('/api/tickets/staff');
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success) {
+                        staffDataCache = result.data;
+                        return staffDataCache;
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading staff data:', error);
+            }
+            return [];
+        }
+
+        async function displayTicketAssignee(assigneeId) {
+            const assigneeElement = document.getElementById('ticketAssignee');
+            
+            if (!assigneeId) {
+                assigneeElement.textContent = '미할당';
+                assigneeElement.className = 'ml-2 text-sm text-gray-500';
+                return;
+            }
+            
+            try {
+                const staffData = await loadStaffData();
+                const assignee = staffData.find(staff => staff.id === assigneeId);
+                
+                if (assignee) {
+                    assigneeElement.textContent = `${assignee.name} (${assignee.role})`;
+                    assigneeElement.className = 'ml-2 text-sm text-gray-900';
+                } else {
+                    assigneeElement.textContent = '알 수 없는 담당자';
+                    assigneeElement.className = 'ml-2 text-sm text-gray-500';
+                }
+            } catch (error) {
+                console.error('Error displaying assignee:', error);
+                assigneeElement.textContent = '담당자 정보 로드 실패';
+                assigneeElement.className = 'ml-2 text-sm text-red-500';
+            }
         }
 
         // Show ticket error in modal

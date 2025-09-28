@@ -156,6 +156,7 @@
                             <tr>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">티켓번호</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">제목</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">담당자</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">우선순위</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">상태</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SLA 마감</th>
@@ -242,6 +243,51 @@
     </div>
 
     <script>
+        // Load assignee information for tickets
+        async function loadTicketAssignees(tickets) {
+            try {
+                // Load staff data
+                const staffResponse = await fetch('/api/tickets/staff');
+                if (!staffResponse.ok) return;
+                
+                const staffData = await staffResponse.json();
+                if (!staffData.success) return;
+                
+                const staff = staffData.data;
+                
+                // Update each ticket's assignee display
+                tickets.forEach(ticket => {
+                    const assigneeElement = document.getElementById(`assignee-${ticket.id}`);
+                    if (!assigneeElement) return;
+                    
+                    if (ticket.assigneeId) {
+                        const assignee = staff.find(s => s.id === ticket.assigneeId);
+                        if (assignee) {
+                            assigneeElement.innerHTML = `
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-medium">
+                                        ${assignee.name.charAt(0)}
+                                    </div>
+                                    <span class="text-sm text-gray-900">${assignee.name}</span>
+                                </div>
+                            `;
+                        } else {
+                            assigneeElement.innerHTML = '<span class="text-sm text-gray-500">알 수 없음</span>';
+                        }
+                    } else {
+                        assigneeElement.innerHTML = '<span class="text-sm text-gray-400">미할당</span>';
+                    }
+                });
+            } catch (error) {
+                console.error('Error loading assignees:', error);
+                // Clear loading states
+                document.querySelectorAll('.loading-assignee').forEach(el => {
+                    el.textContent = '로드 실패';
+                    el.className = 'text-sm text-red-500';
+                });
+            }
+        }
+
         // Load dashboard data
         async function loadDashboardData() {
             try {
@@ -373,7 +419,7 @@
                         if (tickets.length === 0) {
                             ticketsTable.innerHTML = `
                                 <tr>
-                                    <td colspan="6" class="px-6 py-4 text-center text-gray-500">
+                                    <td colspan="7" class="px-6 py-4 text-center text-gray-500">
                                         아직 생성된 티켓이 없습니다. 메시지를 분류하면 자동으로 티켓이 생성됩니다.
                                     </td>
                                 </tr>
@@ -419,6 +465,9 @@
                                                 ${ticket.title}
                                             </a>
                                         </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" id="assignee-${ticket.id}">
+                                            <span class="loading-assignee">로딩중...</span>
+                                        </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${priorityColor[ticket.priority] || 'bg-gray-100 text-gray-800'}">
                                                 ${ticket.priority}
@@ -441,6 +490,9 @@
                                     </tr>
                                 `;
                             }).join('');
+                            
+                            // Load assignee information for each ticket
+                            loadTicketAssignees(tickets);
                         }
                     }
                 }
