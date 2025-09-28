@@ -691,8 +691,9 @@
                         const filters = getFilterValues();
                         const filteredData = applyFilters(currentData, filters);
                         updateStatistics(filteredData);
-                        updateKeywordAnalysis(filteredData);
+                        await updateWordCloud(filteredData);
                         updateCharts(filteredData);
+                        updateDataTable(filteredData);
                         
                         // Update status
                         const statusEl = document.getElementById('dataStatus');
