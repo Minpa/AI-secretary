@@ -10,12 +10,15 @@ const unitAnalyticsController = new UnitAnalyticsController();
 // Report generation
 router.post('/generate', reportController.generateReport);
 router.get('/templates', reportController.getTemplates);
-router.get('/:id', reportController.getReport);
-router.get('/:id/download', reportController.downloadReport);
 
-// Analytics endpoints
+// Analytics endpoints (must be before /:id route)
 router.get('/analytics/summary', reportController.getAnalyticsSummary);
 router.get('/analytics/trends', reportController.getTrends);
+router.get('/keyword-analysis', reportController.getKeywordAnalysis);
+
+// Generic ID-based routes (must be after specific routes)
+router.get('/:id', reportController.getReport);
+router.get('/:id/download', reportController.downloadReport);
 
 // Unit analytics endpoints
 router.get('/units/analytics', unitAnalyticsController.getUnitAnalytics.bind(unitAnalyticsController));
