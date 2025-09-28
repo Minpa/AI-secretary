@@ -124,6 +124,40 @@ export class IntakeController {
     }
   };
 
+  handleTwilioCall = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { From, TranscriptionText, CallDuration, CallSid } = req.body;
+      
+      if (!From || !TranscriptionText) {
+        throw new AppError('Missing required Twilio fields', 400);
+      }
+
+      const message = await this.intakeService.processMessage({
+        channel: IntakeChannel.CALL,
+        content: TranscriptionText,
+        sender: From,
+        metadata: {
+          callSid: CallSid,
+          duration: CallDuration
+        }
+      });
+
+      // Respond to Twilio with Korean TwiML
+      res.set('Content-Type', 'text/xml');
+      res.send(`
+        <?xml version="1.0" encoding="UTF-8"?>
+        <Response>
+          <Say voice="alice" language="ko-KR">
+            접수되었습니다. 빠른 시일 내에 연락드리겠습니다.
+          </Say>
+          <Hangup/>
+        </Response>
+      `);
+    } catch (error) {
+      next(error);
+    }
+  };
+
   getMessages = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const messages = await this.intakeService.getMessages(req.query);

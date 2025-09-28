@@ -125,8 +125,17 @@
                     </div>
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-2">통화 내용 (음성인식)</label>
+                        <div class="flex gap-2 mb-2">
+                            <button type="button" id="startRecording" class="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700">
+                                🎤 음성 녹음 시작
+                            </button>
+                            <button type="button" id="stopRecording" class="bg-gray-600 text-white px-3 py-1 rounded text-sm hover:bg-gray-700" disabled>
+                                ⏹️ 녹음 중지
+                            </button>
+                            <span id="recordingStatus" class="text-sm text-gray-500 self-center"></span>
+                        </div>
                         <textarea id="callTranscript" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md" 
-                                  placeholder="관리비 문의드립니다">관리비 문의드립니다</textarea>
+                                  placeholder="관리비 문의드립니다 (또는 위 버튼으로 음성 녹음)">관리비 문의드립니다</textarea>
                     </div>
                     <button type="submit" class="w-full bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700">
                         통화 기록 테스트
@@ -797,6 +806,62 @@
             xhr1.send();
         });
         
+        // Voice Recording for Call Testing
+        let recognition = null;
+        let isRecording = false;
+
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.lang = 'ko-KR';
+            recognition.continuous = false;
+            recognition.interimResults = false;
+
+            document.getElementById('startRecording').onclick = () => {
+                if (!isRecording) {
+                    recognition.start();
+                    isRecording = true;
+                    document.getElementById('startRecording').disabled = true;
+                    document.getElementById('stopRecording').disabled = false;
+                    document.getElementById('recordingStatus').textContent = '🔴 녹음 중...';
+                }
+            };
+
+            document.getElementById('stopRecording').onclick = () => {
+                if (isRecording) {
+                    recognition.stop();
+                }
+            };
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                document.getElementById('callTranscript').value = transcript;
+                document.getElementById('recordingStatus').textContent = '✅ 녹음 완료';
+                resetRecordingButtons();
+            };
+
+            recognition.onerror = (event) => {
+                console.error('Speech recognition error:', event.error);
+                document.getElementById('recordingStatus').textContent = '❌ 녹음 오류: ' + event.error;
+                resetRecordingButtons();
+            };
+
+            recognition.onend = () => {
+                resetRecordingButtons();
+            };
+
+            function resetRecordingButtons() {
+                isRecording = false;
+                document.getElementById('startRecording').disabled = false;
+                document.getElementById('stopRecording').disabled = true;
+            }
+        } else {
+            // Hide recording buttons if not supported
+            document.getElementById('startRecording').style.display = 'none';
+            document.getElementById('stopRecording').style.display = 'none';
+            document.getElementById('recordingStatus').textContent = '음성 인식이 지원되지 않는 브라우저입니다.';
+        }
+
         // Script loaded successfully
         console.log('✅ JavaScript loaded successfully - no syntax errors');
     </script>
