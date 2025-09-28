@@ -15,6 +15,9 @@ router.get('/sla/violations', ticketController.getSLAViolations);
 // Workload and assignment management (must be before /:id route)
 router.get('/workload/analytics', ticketController.getWorkloadAnalytics);
 router.get('/staff', ticketController.getStaffList);
+router.post('/staff', ticketController.addStaff);
+router.put('/staff/:id', ticketController.updateStaff);
+router.delete('/staff/:id', ticketController.deleteStaff);
 router.get('/assignee/:assigneeId', ticketController.getTicketsByAssignee);
 
 // Specific message-based routes (must be before /:id route)

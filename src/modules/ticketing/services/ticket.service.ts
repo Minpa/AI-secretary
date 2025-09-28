@@ -267,4 +267,44 @@ export class TicketService {
       throw error;
     }
   }
+
+  // Staff Management CRUD Operations
+  async addStaff(staffData: { name: string; role: string; specialties: string[] }) {
+    const newStaff = {
+      id: `staff_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+      ...staffData
+    };
+    
+    MANAGEMENT_STAFF.push(newStaff);
+    logger.info('Staff member added', { staffId: newStaff.id, name: newStaff.name });
+    return newStaff;
+  }
+
+  async updateStaff(staffId: string, updates: { name?: string; role?: string; specialties?: string[] }) {
+    const staffIndex = MANAGEMENT_STAFF.findIndex(staff => staff.id === staffId);
+    if (staffIndex === -1) {
+      return null;
+    }
+    
+    MANAGEMENT_STAFF[staffIndex] = { ...MANAGEMENT_STAFF[staffIndex], ...updates };
+    logger.info('Staff member updated', { staffId, updates });
+    return MANAGEMENT_STAFF[staffIndex];
+  }
+
+  async deleteStaff(staffId: string) {
+    const staffIndex = MANAGEMENT_STAFF.findIndex(staff => staff.id === staffId);
+    if (staffIndex === -1) {
+      return false;
+    }
+    
+    // Check if staff has assigned tickets
+    const assignedTickets = await this.getTicketsByAssignee(staffId);
+    if (assignedTickets.length > 0) {
+      throw new Error(`Cannot delete staff member with ${assignedTickets.length} assigned tickets. Please reassign tickets first.`);
+    }
+    
+    MANAGEMENT_STAFF.splice(staffIndex, 1);
+    logger.info('Staff member deleted', { staffId });
+    return true;
+  }
 }

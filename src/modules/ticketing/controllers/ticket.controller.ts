@@ -248,4 +248,72 @@ export class TicketController {
       next(error);
     }
   };
+
+  // Staff Management CRUD Operations
+  addStaff = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { name, role, specialties } = req.body;
+
+      if (!name || !role || !specialties) {
+        throw new AppError('Name, role, and specialties are required', 400);
+      }
+
+      const newStaff = await this.ticketService.addStaff({ name, role, specialties });
+
+      const response: ApiResponse = {
+        success: true,
+        data: newStaff,
+        message: 'Staff member added successfully'
+      };
+
+      res.status(201).json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  updateStaff = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const { name, role, specialties } = req.body;
+
+      const updatedStaff = await this.ticketService.updateStaff(id, { name, role, specialties });
+
+      if (!updatedStaff) {
+        throw new AppError('Staff member not found', 404);
+      }
+
+      const response: ApiResponse = {
+        success: true,
+        data: updatedStaff,
+        message: 'Staff member updated successfully'
+      };
+
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  deleteStaff = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { id } = req.params;
+
+      const deleted = await this.ticketService.deleteStaff(id);
+
+      if (!deleted) {
+        throw new AppError('Staff member not found', 404);
+      }
+
+      const response: ApiResponse = {
+        success: true,
+        data: { id },
+        message: 'Staff member deleted successfully'
+      };
+
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
 }
