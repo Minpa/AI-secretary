@@ -673,10 +673,10 @@
             try {
                 console.log('🚀 Loading report data...');
                 
-                // Check cache first (valid for 5 minutes)
+                // Check cache first (valid for 30 seconds)
                 const cacheKey = 'reportsData';
                 const cacheTimestamp = 'reportsDataTimestamp';
-                const cacheValidDuration = 5 * 60 * 1000; // 5 minutes
+                const cacheValidDuration = 30 * 1000; // 30 seconds
                 
                 const cachedData = localStorage.getItem(cacheKey);
                 const cachedTimestamp = localStorage.getItem(cacheTimestamp);
@@ -2137,7 +2137,10 @@
 
         // Event listeners
         document.getElementById('loadData').addEventListener('click', () => {
-            console.log('🔄 Manual data load requested');
+            console.log('🔄 Manual data load requested - bypassing cache');
+            // Clear cache to force fresh data
+            localStorage.removeItem('reportsData');
+            localStorage.removeItem('reportsDataTimestamp');
             loadReportData();
         });
         
