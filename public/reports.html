@@ -2768,12 +2768,8 @@ WordCloud: ${wordCloudAvailable ? '✅ 로드됨' : '❌ 로드 실패'}
                 // Build query parameters from current filters
                 const params = new URLSearchParams();
                 
-                if (currentUnitFilters.startDate) {
-                    params.append('startDate', currentUnitFilters.startDate);
-                }
-                if (currentUnitFilters.endDate) {
-                    params.append('endDate', currentUnitFilters.endDate);
-                }
+                // For now, don't apply date filters to unit analytics to show all available data
+                // This ensures users can see apartment unit data without date restrictions
                 if (currentUnitFilters.categories && currentUnitFilters.categories.length > 0) {
                     params.append('categories', currentUnitFilters.categories.join(','));
                 }
@@ -2794,7 +2790,8 @@ WordCloud: ${wordCloudAvailable ? '✅ 로드됨' : '❌ 로드 실패'}
                 }
             } catch (error) {
                 console.error('❌ Error loading unit analytics:', error);
-                showUnitAnalyticsError('네트워크 오류가 발생했습니다.');
+                console.error('❌ Error details:', error.message, error.stack);
+                showUnitAnalyticsError('네트워크 오류가 발생했습니다: ' + error.message);
             }
         }
 
