@@ -253,6 +253,28 @@ const phoneNumbers = [
     "010-6666-7777", "010-7777-8888", "010-8888-9999", "010-9999-0000", "010-1357-2468"
 ];
 
+// Apartment management staff for ticket assignment
+const managementStaff = [
+    { id: 'staff_001', name: '김관리', role: '관리소장', specialties: ['billing', 'inquiry', 'complaint'] },
+    { id: 'staff_002', name: '이수리', role: '시설관리', specialties: ['maintenance', 'facility'] },
+    { id: 'staff_003', name: '박보안', role: '경비팀장', specialties: ['security', 'parking'] },
+    { id: 'staff_004', name: '최청소', role: '환경관리', specialties: ['maintenance', 'facility'] },
+    { id: 'staff_005', name: '정전기', role: '전기기사', specialties: ['maintenance'] },
+    { id: 'staff_006', name: '한소음', role: '민원담당', specialties: ['noise', 'complaint'] }
+];
+
+function getAssigneeForCategory(category) {
+    const availableStaff = managementStaff.filter(staff => 
+        staff.specialties.includes(category) || staff.specialties.includes('inquiry')
+    );
+    
+    if (availableStaff.length === 0) {
+        return managementStaff[0]; // Default to manager
+    }
+    
+    return getRandomElement(availableStaff);
+}
+
 const emailAddresses = [
     "resident1@apt.com", "resident2@apt.com", "resident3@apt.com", "resident4@apt.com",
     "kim.minsoo@gmail.com", "lee.younghee@naver.com", "park.jinho@daum.net", "choi.sujin@hanmail.net",

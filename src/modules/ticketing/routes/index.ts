@@ -17,4 +17,10 @@ router.patch('/:id/status', ticketController.updateStatus);
 router.get('/sla/dashboard', ticketController.getSLADashboard);
 router.get('/sla/violations', ticketController.getSLAViolations);
 
+// Workload and assignment management
+router.get('/workload/analytics', ticketController.getWorkloadAnalytics);
+router.get('/staff', ticketController.getStaffList);
+router.get('/assignee/:assigneeId', ticketController.getTicketsByAssignee);
+router.patch('/:id/reassign', ticketController.reassignTicket);
+
 export { router as ticketingRoutes };

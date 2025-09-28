@@ -176,4 +176,76 @@ export class TicketController {
       next(error);
     }
   };
+
+  getWorkloadAnalytics = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const workloadData = await this.ticketService.getWorkloadAnalytics();
+
+      const response: ApiResponse = {
+        success: true,
+        data: workloadData,
+        message: 'Workload analytics retrieved successfully'
+      };
+
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getStaffList = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const staff = this.ticketService.getAllStaff();
+
+      const response: ApiResponse = {
+        success: true,
+        data: staff,
+        message: 'Staff list retrieved successfully'
+      };
+
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getTicketsByAssignee = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { assigneeId } = req.params;
+      const tickets = await this.ticketService.getTicketsByAssignee(assigneeId);
+
+      const response: ApiResponse = {
+        success: true,
+        data: tickets,
+        message: 'Tickets by assignee retrieved successfully'
+      };
+
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  reassignTicket = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const { assigneeId } = req.body;
+
+      if (!assigneeId) {
+        throw new AppError('New assignee ID is required', 400);
+      }
+
+      const ticket = await this.ticketService.reassignTicket(id, assigneeId);
+
+      const response: ApiResponse = {
+        success: true,
+        data: ticket,
+        message: 'Ticket reassigned successfully'
+      };
+
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
 }
