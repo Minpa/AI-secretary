@@ -121,7 +121,7 @@
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-2">통화 시간 (분)</label>
                         <input type="number" id="callDuration" class="w-full px-3 py-2 border border-gray-300 rounded-md" 
-                               placeholder="5" value="5">
+                               placeholder="10" value="10">
                     </div>
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-2">통화 내용 (음성인식)</label>
@@ -809,21 +809,38 @@
         // Voice Recording for Call Testing
         let recognition = null;
         let isRecording = false;
+        let recordingTimer = null;
+        let recordingStartTime = null;
 
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             recognition = new SpeechRecognition();
             recognition.lang = 'ko-KR';
-            recognition.continuous = false;
-            recognition.interimResults = false;
+            recognition.continuous = true;  // Allow continuous recording
+            recognition.interimResults = true;  // Show interim results
+            recognition.maxAlternatives = 1;
 
             document.getElementById('startRecording').onclick = () => {
                 if (!isRecording) {
                     recognition.start();
                     isRecording = true;
+                    recordingStartTime = Date.now();
                     document.getElementById('startRecording').disabled = true;
                     document.getElementById('stopRecording').disabled = false;
-                    document.getElementById('recordingStatus').textContent = '🔴 녹음 중...';
+                    document.getElementById('recordingStatus').textContent = '🔴 녹음 중... (0초)';
+                    
+                    // Start timer to show recording duration
+                    recordingTimer = setInterval(() => {
+                        if (isRecording) {
+                            const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
+                            document.getElementById('recordingStatus').textContent = `🔴 녹음 중... (${elapsed}초)`;
+                            
+                            // Auto-stop after 15 seconds to prevent timeout
+                            if (elapsed >= 15) {
+                                recognition.stop();
+                            }
+                        }
+                    }, 1000);
                 }
             };
 
@@ -834,10 +851,28 @@
             };
 
             recognition.onresult = (event) => {
-                const transcript = event.results[0][0].transcript;
-                document.getElementById('callTranscript').value = transcript;
-                document.getElementById('recordingStatus').textContent = '✅ 녹음 완료';
-                resetRecordingButtons();
+                let finalTranscript = '';
+                let interimTranscript = '';
+                
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        finalTranscript += transcript;
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+                
+                // Update textarea with final + interim results
+                const currentText = document.getElementById('callTranscript').value;
+                const newText = finalTranscript || interimTranscript;
+                
+                if (finalTranscript) {
+                    document.getElementById('callTranscript').value = currentText + finalTranscript;
+                } else if (interimTranscript) {
+                    // Show interim results in placeholder or status
+                    document.getElementById('recordingStatus').textContent = `🔴 녹음 중... "${interimTranscript}"`;
+                }
             };
 
             recognition.onerror = (event) => {
@@ -847,6 +882,8 @@
             };
 
             recognition.onend = () => {
+                const elapsed = recordingStartTime ? Math.floor((Date.now() - recordingStartTime) / 1000) : 0;
+                document.getElementById('recordingStatus').textContent = `✅ 녹음 완료 (${elapsed}초)`;
                 resetRecordingButtons();
             };
 
@@ -854,6 +891,11 @@
                 isRecording = false;
                 document.getElementById('startRecording').disabled = false;
                 document.getElementById('stopRecording').disabled = true;
+                
+                if (recordingTimer) {
+                    clearInterval(recordingTimer);
+                    recordingTimer = null;
+                }
             }
         } else {
             // Hide recording buttons if not supported
