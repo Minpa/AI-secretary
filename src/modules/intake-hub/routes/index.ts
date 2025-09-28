@@ -35,4 +35,17 @@ router.get('/test', (req, res) => {
   res.json({ success: true, message: 'API is working', timestamp: new Date() });
 });
 
+// Debug endpoint to check in-memory store directly
+router.get('/debug/store', (req, res) => {
+  const { inMemoryStore } = require('@/shared/database/in-memory-store');
+  res.json({ 
+    success: true, 
+    data: {
+      messageCount: inMemoryStore.getMessageCount(),
+      ticketCount: inMemoryStore.getTicketCount(),
+      messages: inMemoryStore.getMessages(5) // Get first 5 messages
+    }
+  });
+});
+
 export { router as intakeHubRoutes };
