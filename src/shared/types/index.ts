@@ -79,14 +79,40 @@ export enum IntakeStatus {
 }
 
 export enum MessageClassification {
-  MAINTENANCE = 'maintenance',
-  COMPLAINT = 'complaint',
-  INQUIRY = 'inquiry',
-  EMERGENCY = 'emergency',
-  BILLING = 'billing',
-  NOISE = 'noise',
-  PARKING = 'parking',
-  SECURITY = 'security'
+  // 공용 공간 및 시설 관련
+  COMMON_FACILITY = 'common_facility',           // 복도·주차장·엘리베이터 등 공용시설 고장 또는 파손
+  ACCESS_CONTROL = 'access_control',             // 공동현관 비밀번호 변경 및 출입 통제
+  LANDSCAPING = 'landscaping',                   // 정원, 놀이터, 운동시설, 쓰레기장 등 청결, 환경, 조경 관리
+  LIGHTING = 'lighting',                         // 공용 전기·조명 등 계절별 점등 시간, 소등·점검
+  
+  // 생활 불편 및 위생 관련
+  NOISE = 'noise',                               // 소음(층간소음, 기계실 소음, 집회 소리 등) 민원·중재
+  HYGIENE = 'hygiene',                           // 악취, 곰팡이, 해충·벌레 등 환경 위생 문제
+  SMOKING = 'smoking',                           // 간접흡연(복도·베란다 등) 관련 피해
+  
+  // 주차·교통 관련
+  PARKING = 'parking',                           // 주차장 무단 점유 및 불법 주차, 방문차량 등록, 전기차 충전소
+  
+  // 입주민·관리사무소 관련 분쟁 및 문의
+  RESIDENT_DISPUTE = 'resident_dispute',         // 입주민 간 다툼, 폭언, 폭행, 인신공격
+  STAFF_SERVICE = 'staff_service',               // 관리사무소나 경비·미화 직원의 서비스·복무 관련
+  
+  // 개인 공간 및 기타 문의
+  UNIT_REPAIR = 'unit_repair',                   // 세대 내 하자·보수 요청
+  BILLING = 'billing',                           // 공동 분담금(관리비, 청소비 등) 부과 내역
+  ADMINISTRATION = 'administration',             // 회계, 인사, 시설 증개축 관련 행정 처리
+  STATUS_INQUIRY = 'status_inquiry',             // 각종 민원이나 신고 처리 상태 문의
+  
+  // 기타 자주 접수되는 문의
+  DELIVERY = 'delivery',                         // 택배/우편물 분실 또는 수령 관련
+  SAFETY = 'safety',                             // 단지 내 안전(비상벨, CCTV 등) 점검
+  EMERGENCY = 'emergency',                       // 정전, 단수, 급수 불량, 난방(온수) 불량 등 긴급 상황
+  SCHEDULE = 'schedule',                         // 외주 공사, 도색, 소독 등 단지 정기 일정 공지
+  
+  // 기본 분류
+  INQUIRY = 'inquiry',                           // 일반 문의
+  COMPLAINT = 'complaint',                       // 일반 민원
+  MAINTENANCE = 'maintenance'                    // 일반 시설 관리
 }
 
 export enum Priority {

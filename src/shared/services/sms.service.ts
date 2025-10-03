@@ -1,6 +1,8 @@
 import twilio from 'twilio';
 import { config } from '@/config';
 import { logger } from '@/shared/utils/logger';
+import { MessageClassification } from '@/shared/types';
+import { conversationService } from './conversation.service';
 
 export class SMSService {
   private client: twilio.Twilio | null = null;
@@ -37,7 +39,18 @@ export class SMSService {
     }
   }
 
+  async startConversation(to: string, messageId: string, classification: MessageClassification): Promise<boolean> {
+    const conversationMessage = conversationService.startConversation(messageId, classification);
+    return this.sendSMS(to, conversationMessage);
+  }
+
+  async processConversationResponse(to: string, messageId: string, userResponse: string): Promise<boolean> {
+    const responseMessage = conversationService.processResponse(messageId, userResponse);
+    return this.sendSMS(to, responseMessage);
+  }
+
   async sendDetailRequest(to: string, classification: string): Promise<boolean> {
+    // Legacy method - kept for backward compatibility
     const messages = {
       maintenance: '안녕하세요. 시설 관련 문의 접수되었습니다. 더 정확한 처리를 위해 다음 정보를 알려주세요:\n1) 정확한 위치 (동/호수)\n2) 문제 상황 상세 설명\n3) 긴급도 (긴급/보통)',
       complaint: '안녕하세요. 민원이 접수되었습니다. 신속한 처리를 위해 추가 정보를 알려주세요:\n1) 발생 위치\n2) 발생 시간\n3) 구체적인 상황',

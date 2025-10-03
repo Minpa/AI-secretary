@@ -1,9 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
 import { IntakeService } from '../services/intake.service';
 import { ClassificationService } from '../services/classification.service';
-import { ApiResponse, IntakeChannel, ApartmentUnitInfo } from '@/shared/types';
+import { ApiResponse, IntakeChannel, ApartmentUnitInfo, MessageClassification } from '@/shared/types';
 import { AppError } from '@/shared/middleware/error-handler';
 import { apartmentParser } from '@/shared/services/apartment-parser.service';
+import { kakaoTalkService } from '@/shared/services/kakaotalk.service';
 
 export class IntakeController {
   private intakeService: IntakeService;
@@ -179,20 +180,16 @@ export class IntakeController {
         }
       });
 
-      // Generate appropriate KakaoTalk response based on classification
-      const classification = message.classification || 'inquiry';
-      const kakaoResponse = this.generateKakaoTalkResponse(classification, message.priority);
+      // Generate appropriate KakaoTalk response with conversation
+      const classification = message.classification || this.autoClassifyMessage(message.content);
+      const kakaoResponse = kakaoTalkService.startConversation(message.id, classification);
 
       // Respond with KakaoTalk format
       const response = {
         success: true,
         data: message,
         message: 'KakaoTalk message processed successfully',
-        kakaoResponse: {
-          message: {
-            text: kakaoResponse
-          }
-        }
+        kakaoResponse
       };
 
       res.status(201).json(response);
@@ -201,16 +198,86 @@ export class IntakeController {
     }
   };
 
-  private generateKakaoTalkResponse(classification: string, priority: string): string {
-    const responses = {
-      emergency: '🚨 긴급상황이 접수되었습니다.\n즉시 담당자가 확인하겠습니다.\n추가 연락이 필요한 경우 관리사무소(02-1234-5678)로 연락해 주세요.',
-      maintenance: '🔧 시설 관련 문의가 접수되었습니다.\n정확한 처리를 위해 다음 정보를 알려주세요:\n\n1️⃣ 정확한 위치 (동/호수)\n2️⃣ 문제 상황 상세 설명\n3️⃣ 긴급도 (긴급/보통)',
-      complaint: '📝 민원이 접수되었습니다.\n신속한 처리를 위해 추가 정보를 알려주세요:\n\n1️⃣ 발생 위치\n2️⃣ 발생 시간\n3️⃣ 구체적인 상황',
-      inquiry: '💬 문의사항이 접수되었습니다.\n정확한 답변을 위해 다음을 알려주세요:\n\n1️⃣ 문의 내용 상세\n2️⃣ 연락 가능한 시간\n3️⃣ 회신 방법 선택',
-      default: '✅ 접수되었습니다.\n더 정확한 처리를 위해 상세한 정보를 알려주시면 신속히 처리하겠습니다.'
-    };
+  private autoClassifyMessage(content: string): MessageClassification {
+    const lowerContent = content.toLowerCase();
 
-    return responses[classification as keyof typeof responses] || responses.default;
+    // 긴급상황 키워드
+    if (lowerContent.includes('응급') || lowerContent.includes('긴급') || 
+        lowerContent.includes('위험') || lowerContent.includes('화재') || 
+        lowerContent.includes('가스') || lowerContent.includes('정전') ||
+        lowerContent.includes('단수') || lowerContent.includes('누출')) {
+      return MessageClassification.EMERGENCY;
+    }
+
+    // 공용시설 키워드
+    if (lowerContent.includes('엘리베이터') || lowerContent.includes('복도') || 
+        lowerContent.includes('주차장') || lowerContent.includes('고장') || 
+        lowerContent.includes('파손') || lowerContent.includes('수리')) {
+      return MessageClassification.COMMON_FACILITY;
+    }
+
+    // 소음 키워드
+    if (lowerContent.includes('소음') || lowerContent.includes('시끄') || 
+        lowerContent.includes('층간') || lowerContent.includes('기계실')) {
+      return MessageClassification.NOISE;
+    }
+
+    // 주차 키워드
+    if (lowerContent.includes('주차') || lowerContent.includes('차량') || 
+        lowerContent.includes('불법') || lowerContent.includes('방문차')) {
+      return MessageClassification.PARKING;
+    }
+
+    // 위생 키워드
+    if (lowerContent.includes('악취') || lowerContent.includes('곰팡이') || 
+        lowerContent.includes('해충') || lowerContent.includes('벌레') || 
+        lowerContent.includes('쓰레기')) {
+      return MessageClassification.HYGIENE;
+    }
+
+    // 관리비 키워드
+    if (lowerContent.includes('관리비') || lowerContent.includes('요금') || 
+        lowerContent.includes('청구') || lowerContent.includes('납부')) {
+      return MessageClassification.BILLING;
+    }
+
+    // 출입통제 키워드
+    if (lowerContent.includes('비밀번호') || lowerContent.includes('출입') || 
+        lowerContent.includes('현관') || lowerContent.includes('카드')) {
+      return MessageClassification.ACCESS_CONTROL;
+    }
+
+    // 조경 키워드
+    if (lowerContent.includes('정원') || lowerContent.includes('놀이터') || 
+        lowerContent.includes('운동시설') || lowerContent.includes('조경')) {
+      return MessageClassification.LANDSCAPING;
+    }
+
+    // 조명 키워드
+    if (lowerContent.includes('조명') || lowerContent.includes('전등') || 
+        lowerContent.includes('점등') || lowerContent.includes('소등')) {
+      return MessageClassification.LIGHTING;
+    }
+
+    // 흡연 키워드
+    if (lowerContent.includes('흡연') || lowerContent.includes('담배') || 
+        lowerContent.includes('베란다')) {
+      return MessageClassification.SMOKING;
+    }
+
+    // 택배 키워드
+    if (lowerContent.includes('택배') || lowerContent.includes('우편') || 
+        lowerContent.includes('배송') || lowerContent.includes('분실')) {
+      return MessageClassification.DELIVERY;
+    }
+
+    // 안전 키워드
+    if (lowerContent.includes('안전') || lowerContent.includes('비상벨') || 
+        lowerContent.includes('cctv') || lowerContent.includes('소화기')) {
+      return MessageClassification.SAFETY;
+    }
+
+    return MessageClassification.INQUIRY; // 기본값
   }
 
   getMessages = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -306,6 +373,51 @@ export class IntakeController {
       };
 
       res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  handleSMSResponse = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { from, body, messageId } = req.body;
+      
+      if (!from || !body || !messageId) {
+        throw new AppError('Missing required fields: from, body, messageId', 400);
+      }
+
+      // Process conversation response
+      await this.intakeService.processSMSResponse(from, messageId, body);
+
+      const response: ApiResponse = {
+        success: true,
+        message: 'SMS conversation response processed successfully'
+      };
+
+      res.status(200).json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  handleKakaoTalkResponse = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { user_key, content, messageId } = req.body;
+      
+      if (!user_key || !content || !messageId) {
+        throw new AppError('Missing required fields: user_key, content, messageId', 400);
+      }
+
+      // Process KakaoTalk conversation response
+      const kakaoResponse = kakaoTalkService.processConversationResponse(messageId, content);
+
+      const response = {
+        success: true,
+        message: 'KakaoTalk conversation response processed successfully',
+        kakaoResponse
+      };
+
+      res.status(200).json(response);
     } catch (error) {
       next(error);
     }

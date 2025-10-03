@@ -240,27 +240,44 @@ export class IntakeService {
       // Determine classification for appropriate response
       const classification = message.classification || this.autoClassifyMessage(message.content);
       
-      // Send AI-generated detail request based on classification
-      const sent = await smsService.sendDetailRequest(phoneNumber, classification);
+      // Start conversation-based detail collection
+      const sent = await smsService.startConversation(phoneNumber, message.id, classification);
       
       if (sent) {
-        logger.info('SMS detail request sent', { 
+        logger.info('SMS conversation started', { 
           messageId: message.id, 
           phoneNumber: phoneNumber.substring(0, 5) + '***', // Mask phone number in logs
           classification 
         });
       } else {
-        logger.warn('Failed to send SMS detail request', { 
+        logger.warn('Failed to start SMS conversation', { 
           messageId: message.id, 
           classification 
         });
       }
     } catch (error) {
-      logger.error('Error sending SMS detail request', { 
+      logger.error('Error starting SMS conversation', { 
         error, 
         messageId: message.id 
       });
       // Don't throw error - SMS failure shouldn't break message processing
+    }
+  }
+
+  async processSMSResponse(phoneNumber: string, messageId: string, userResponse: string): Promise<void> {
+    try {
+      const sent = await smsService.processConversationResponse(phoneNumber, messageId, userResponse);
+      
+      if (sent) {
+        logger.info('SMS conversation response processed', { 
+          messageId, 
+          phoneNumber: phoneNumber.substring(0, 5) + '***'
+        });
+      } else {
+        logger.warn('Failed to process SMS conversation response', { messageId });
+      }
+    } catch (error) {
+      logger.error('Error processing SMS conversation response', { error, messageId });
     }
   }
 

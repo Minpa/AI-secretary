@@ -14,6 +14,10 @@ router.post('/call', intakeController.handleCall);
 router.post('/twilio-call', intakeController.handleTwilioCall);
 router.post('/kakaotalk', intakeController.handleKakaoTalk);
 
+// Conversation endpoints
+router.post('/sms/response', intakeController.handleSMSResponse);
+router.post('/kakaotalk/response', intakeController.handleKakaoTalkResponse);
+
 // Message management
 router.get('/messages', intakeController.getMessages);
 router.get('/messages/:id', intakeController.getMessage);
