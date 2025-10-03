@@ -2,6 +2,7 @@ import { IntakeMessage, IntakeChannel, IntakeStatus, Priority, MessageClassifica
 import { PIIMaskingService } from './pii-masking.service';
 import { TicketIntegrationService } from './ticket-integration.service';
 import { apartmentParser } from '@/shared/services/apartment-parser.service';
+import { smsService } from '@/shared/services/sms.service';
 import { logger } from '@/shared/utils/logger';
 import { inMemoryStore } from '@/shared/database/in-memory-store';
 
@@ -231,6 +232,35 @@ export class IntakeService {
     } catch (error) {
       logger.warn('Failed to parse apartment unit', { error, content: content.substring(0, 100) });
       return undefined;
+    }
+  }
+
+  async sendSMSDetailRequest(phoneNumber: string, message: IntakeMessage): Promise<void> {
+    try {
+      // Determine classification for appropriate response
+      const classification = message.classification || this.autoClassifyMessage(message.content);
+      
+      // Send AI-generated detail request based on classification
+      const sent = await smsService.sendDetailRequest(phoneNumber, classification);
+      
+      if (sent) {
+        logger.info('SMS detail request sent', { 
+          messageId: message.id, 
+          phoneNumber: phoneNumber.substring(0, 5) + '***', // Mask phone number in logs
+          classification 
+        });
+      } else {
+        logger.warn('Failed to send SMS detail request', { 
+          messageId: message.id, 
+          classification 
+        });
+      }
+    } catch (error) {
+      logger.error('Error sending SMS detail request', { 
+        error, 
+        messageId: message.id 
+      });
+      // Don't throw error - SMS failure shouldn't break message processing
     }
   }
 

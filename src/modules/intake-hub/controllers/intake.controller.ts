@@ -29,10 +29,13 @@ export class IntakeController {
         createdAt: createdAt ? new Date(createdAt) : undefined
       });
 
+      // Send AI response to gather more details
+      await this.intakeService.sendSMSDetailRequest(from, message);
+
       const response: ApiResponse = {
         success: true,
         data: message,
-        message: 'SMS message processed successfully'
+        message: 'SMS message processed successfully with AI response sent'
       };
 
       res.status(201).json(response);
@@ -157,6 +160,58 @@ export class IntakeController {
       next(error);
     }
   };
+
+  handleKakaoTalk = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { user_key, content, type, createdAt } = req.body;
+      
+      if (!user_key || !content) {
+        throw new AppError('Missing required fields: user_key, content', 400);
+      }
+
+      const message = await this.intakeService.processMessage({
+        channel: IntakeChannel.KAKAOTALK,
+        content: content,
+        sender: user_key,
+        createdAt: createdAt ? new Date(createdAt) : undefined,
+        metadata: {
+          messageType: type
+        }
+      });
+
+      // Generate appropriate KakaoTalk response based on classification
+      const classification = message.classification || 'inquiry';
+      const kakaoResponse = this.generateKakaoTalkResponse(classification, message.priority);
+
+      // Respond with KakaoTalk format
+      const response = {
+        success: true,
+        data: message,
+        message: 'KakaoTalk message processed successfully',
+        kakaoResponse: {
+          message: {
+            text: kakaoResponse
+          }
+        }
+      };
+
+      res.status(201).json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  private generateKakaoTalkResponse(classification: string, priority: string): string {
+    const responses = {
+      emergency: '🚨 긴급상황이 접수되었습니다.\n즉시 담당자가 확인하겠습니다.\n추가 연락이 필요한 경우 관리사무소(02-1234-5678)로 연락해 주세요.',
+      maintenance: '🔧 시설 관련 문의가 접수되었습니다.\n정확한 처리를 위해 다음 정보를 알려주세요:\n\n1️⃣ 정확한 위치 (동/호수)\n2️⃣ 문제 상황 상세 설명\n3️⃣ 긴급도 (긴급/보통)',
+      complaint: '📝 민원이 접수되었습니다.\n신속한 처리를 위해 추가 정보를 알려주세요:\n\n1️⃣ 발생 위치\n2️⃣ 발생 시간\n3️⃣ 구체적인 상황',
+      inquiry: '💬 문의사항이 접수되었습니다.\n정확한 답변을 위해 다음을 알려주세요:\n\n1️⃣ 문의 내용 상세\n2️⃣ 연락 가능한 시간\n3️⃣ 회신 방법 선택',
+      default: '✅ 접수되었습니다.\n더 정확한 처리를 위해 상세한 정보를 알려주시면 신속히 처리하겠습니다.'
+    };
+
+    return responses[classification as keyof typeof responses] || responses.default;
+  }
 
   getMessages = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {

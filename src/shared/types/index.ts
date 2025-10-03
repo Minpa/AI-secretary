@@ -67,7 +67,8 @@ export enum IntakeChannel {
   SMS = 'sms',
   EMAIL = 'email',
   WEB = 'web',
-  CALL = 'call'
+  CALL = 'call',
+  KAKAOTALK = 'kakaotalk'
 }
 
 export enum IntakeStatus {

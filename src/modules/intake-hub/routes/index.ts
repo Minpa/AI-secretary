@@ -12,6 +12,7 @@ router.post('/email', intakeController.handleEmail);
 router.post('/web', intakeController.handleWeb);
 router.post('/call', intakeController.handleCall);
 router.post('/twilio-call', intakeController.handleTwilioCall);
+router.post('/kakaotalk', intakeController.handleKakaoTalk);
 
 // Message management
 router.get('/messages', intakeController.getMessages);
