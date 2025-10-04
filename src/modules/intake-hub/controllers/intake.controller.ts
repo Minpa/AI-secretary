@@ -181,7 +181,7 @@ export class IntakeController {
       });
 
       // Generate appropriate KakaoTalk response with conversation
-      const classification = message.classification || this.autoClassifyMessage(message.content);
+      const classification = message.classification || MessageClassification.INQUIRY;
       const kakaoResponse = kakaoTalkService.startConversation(message.id, classification);
 
       // Respond with KakaoTalk format

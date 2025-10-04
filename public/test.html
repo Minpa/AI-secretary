@@ -60,45 +60,53 @@
                     </button>
                 </form>
                 <div id="smsResult" class="mt-4 hidden"></div>
-                
+
                 <!-- SMS AI Conversation Simulator -->
                 <div class="mt-6 pt-6 border-t border-gray-200">
                     <h3 class="text-lg font-medium text-gray-900 mb-3">💬 SMS AI 대화 시뮬레이터</h3>
                     <p class="text-sm text-gray-600 mb-4">SMS로 AI가 어떻게 상세 정보를 수집하는지 확인해보세요</p>
-                    
+
                     <!-- SMS Conversation History -->
-                    <div id="smsConversationHistory" class="bg-gray-50 border rounded-lg p-4 mb-4 max-h-80 overflow-y-auto">
+                    <div id="smsConversationHistory"
+                        class="bg-gray-50 border rounded-lg p-4 mb-4 max-h-80 overflow-y-auto">
                         <div class="text-sm text-gray-500 text-center">SMS 대화 기록이 여기에 표시됩니다</div>
                     </div>
-                    
+
                     <!-- SMS Quick Start Buttons -->
                     <div class="grid grid-cols-2 gap-2 mb-4">
-                        <button type="button" id="startSMSNoise" class="bg-blue-500 text-white px-3 py-2 rounded text-sm hover:bg-blue-600">
+                        <button type="button" id="startSMSNoise"
+                            class="bg-blue-500 text-white px-3 py-2 rounded text-sm hover:bg-blue-600">
                             🔇 SMS 소음 민원
                         </button>
-                        <button type="button" id="startSMSFacility" class="bg-green-500 text-white px-3 py-2 rounded text-sm hover:bg-green-600">
+                        <button type="button" id="startSMSFacility"
+                            class="bg-green-500 text-white px-3 py-2 rounded text-sm hover:bg-green-600">
                             🔧 SMS 시설 고장
                         </button>
-                        <button type="button" id="startSMSParking" class="bg-purple-500 text-white px-3 py-2 rounded text-sm hover:bg-purple-600">
+                        <button type="button" id="startSMSParking"
+                            class="bg-purple-500 text-white px-3 py-2 rounded text-sm hover:bg-purple-600">
                             🚗 SMS 주차 문제
                         </button>
-                        <button type="button" id="startSMSEmergency" class="bg-red-500 text-white px-3 py-2 rounded text-sm hover:bg-red-600">
+                        <button type="button" id="startSMSEmergency"
+                            class="bg-red-500 text-white px-3 py-2 rounded text-sm hover:bg-red-600">
                             🚨 SMS 긴급상황
                         </button>
                     </div>
-                    
+
                     <!-- SMS User Response Input -->
                     <form id="smsConversationForm">
                         <div class="flex gap-2">
-                            <input type="text" id="smsUserResponse" class="flex-1 px-3 py-2 border border-gray-300 rounded-md" 
-                                   placeholder="SMS로 AI 질문에 답변하세요..." disabled>
-                            <button type="submit" id="sendSMSResponse" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700" disabled>
+                            <input type="text" id="smsUserResponse"
+                                class="flex-1 px-3 py-2 border border-gray-300 rounded-md"
+                                placeholder="SMS로 AI 질문에 답변하세요..." disabled>
+                            <button type="submit" id="sendSMSResponse"
+                                class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700" disabled>
                                 SMS 전송
                             </button>
                         </div>
                     </form>
-                    
-                    <button type="button" id="clearSMSConversation" class="mt-2 text-sm text-gray-500 hover:text-gray-700">
+
+                    <button type="button" id="clearSMSConversation"
+                        class="mt-2 text-sm text-gray-500 hover:text-gray-700">
                         SMS 대화 기록 지우기
                     </button>
                 </div>
@@ -234,40 +242,48 @@
                 <div class="mt-6 pt-6 border-t border-gray-200">
                     <h3 class="text-lg font-medium text-gray-900 mb-3">💬 카카오톡 AI 대화 시뮬레이터</h3>
                     <p class="text-sm text-gray-600 mb-4">카카오톡으로 AI가 어떻게 상세 정보를 수집하는지 확인해보세요</p>
-                    
+
                     <!-- KakaoTalk Conversation History -->
-                    <div id="kakaoConversationHistory" class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4 max-h-80 overflow-y-auto">
+                    <div id="kakaoConversationHistory"
+                        class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4 max-h-80 overflow-y-auto">
                         <div class="text-sm text-gray-500 text-center">카카오톡 대화 기록이 여기에 표시됩니다</div>
                     </div>
-                    
+
                     <!-- KakaoTalk Quick Start Buttons -->
                     <div class="grid grid-cols-2 gap-2 mb-4">
-                        <button type="button" id="startKakaoNoise" class="bg-yellow-500 text-white px-3 py-2 rounded text-sm hover:bg-yellow-600">
+                        <button type="button" id="startKakaoNoise"
+                            class="bg-yellow-500 text-white px-3 py-2 rounded text-sm hover:bg-yellow-600">
                             🔇 카톡 소음 민원
                         </button>
-                        <button type="button" id="startKakaoFacility" class="bg-yellow-600 text-white px-3 py-2 rounded text-sm hover:bg-yellow-700">
+                        <button type="button" id="startKakaoFacility"
+                            class="bg-yellow-600 text-white px-3 py-2 rounded text-sm hover:bg-yellow-700">
                             🔧 카톡 시설 고장
                         </button>
-                        <button type="button" id="startKakaoParking" class="bg-yellow-400 text-white px-3 py-2 rounded text-sm hover:bg-yellow-500">
+                        <button type="button" id="startKakaoParking"
+                            class="bg-yellow-400 text-white px-3 py-2 rounded text-sm hover:bg-yellow-500">
                             🚗 카톡 주차 문제
                         </button>
-                        <button type="button" id="startKakaoEmergency" class="bg-red-500 text-white px-3 py-2 rounded text-sm hover:bg-red-600">
+                        <button type="button" id="startKakaoEmergency"
+                            class="bg-red-500 text-white px-3 py-2 rounded text-sm hover:bg-red-600">
                             🚨 카톡 긴급상황
                         </button>
                     </div>
-                    
+
                     <!-- KakaoTalk User Response Input -->
                     <form id="kakaoConversationForm">
                         <div class="flex gap-2">
-                            <input type="text" id="kakaoUserResponse" class="flex-1 px-3 py-2 border border-yellow-300 rounded-md" 
-                                   placeholder="카카오톡으로 AI 질문에 답변하세요..." disabled>
-                            <button type="submit" id="sendKakaoResponse" class="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600" disabled>
+                            <input type="text" id="kakaoUserResponse"
+                                class="flex-1 px-3 py-2 border border-yellow-300 rounded-md"
+                                placeholder="카카오톡으로 AI 질문에 답변하세요..." disabled>
+                            <button type="submit" id="sendKakaoResponse"
+                                class="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600" disabled>
                                 카톡 전송
                             </button>
                         </div>
                     </form>
-                    
-                    <button type="button" id="clearKakaoConversation" class="mt-2 text-sm text-gray-500 hover:text-gray-700">
+
+                    <button type="button" id="clearKakaoConversation"
+                        class="mt-2 text-sm text-gray-500 hover:text-gray-700">
                         카카오톡 대화 기록 지우기
                     </button>
                 </div>
@@ -276,39 +292,46 @@
                 <div class="mt-6 pt-6 border-t border-gray-200">
                     <h3 class="text-lg font-medium text-gray-900 mb-3">🤖 AI 대화 시뮬레이터</h3>
                     <p class="text-sm text-gray-600 mb-4">AI가 어떻게 상세 정보를 수집하는지 확인해보세요</p>
-                    
+
                     <!-- Conversation History -->
-                    <div id="conversationHistory" class="bg-gray-50 border rounded-lg p-4 mb-4 max-h-96 overflow-y-auto">
+                    <div id="conversationHistory"
+                        class="bg-gray-50 border rounded-lg p-4 mb-4 max-h-96 overflow-y-auto">
                         <div class="text-sm text-gray-500 text-center">대화 기록이 여기에 표시됩니다</div>
                     </div>
-                    
+
                     <!-- Quick Start Buttons -->
                     <div class="grid grid-cols-2 gap-2 mb-4">
-                        <button type="button" id="startNoiseConversation" class="bg-blue-500 text-white px-3 py-2 rounded text-sm hover:bg-blue-600">
+                        <button type="button" id="startNoiseConversation"
+                            class="bg-blue-500 text-white px-3 py-2 rounded text-sm hover:bg-blue-600">
                             🔇 소음 민원 시작
                         </button>
-                        <button type="button" id="startFacilityConversation" class="bg-green-500 text-white px-3 py-2 rounded text-sm hover:bg-green-600">
+                        <button type="button" id="startFacilityConversation"
+                            class="bg-green-500 text-white px-3 py-2 rounded text-sm hover:bg-green-600">
                             🔧 시설 고장 시작
                         </button>
-                        <button type="button" id="startParkingConversation" class="bg-purple-500 text-white px-3 py-2 rounded text-sm hover:bg-purple-600">
+                        <button type="button" id="startParkingConversation"
+                            class="bg-purple-500 text-white px-3 py-2 rounded text-sm hover:bg-purple-600">
                             🚗 주차 문제 시작
                         </button>
-                        <button type="button" id="startEmergencyConversation" class="bg-red-500 text-white px-3 py-2 rounded text-sm hover:bg-red-600">
+                        <button type="button" id="startEmergencyConversation"
+                            class="bg-red-500 text-white px-3 py-2 rounded text-sm hover:bg-red-600">
                             🚨 긴급상황 시작
                         </button>
                     </div>
-                    
+
                     <!-- User Response Input -->
                     <form id="conversationResponseForm">
                         <div class="flex gap-2">
-                            <input type="text" id="userResponse" class="flex-1 px-3 py-2 border border-gray-300 rounded-md" 
-                                   placeholder="AI 질문에 답변하세요..." disabled>
-                            <button type="submit" id="sendResponse" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700" disabled>
+                            <input type="text" id="userResponse"
+                                class="flex-1 px-3 py-2 border border-gray-300 rounded-md" placeholder="AI 질문에 답변하세요..."
+                                disabled>
+                            <button type="submit" id="sendResponse"
+                                class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700" disabled>
                                 전송
                             </button>
                         </div>
                     </form>
-                    
+
                     <button type="button" id="clearConversation" class="mt-2 text-sm text-gray-500 hover:text-gray-700">
                         대화 기록 지우기
                     </button>
@@ -1198,7 +1221,7 @@
         let smsConversationStep = 0;
         let currentKakaoConversation = null;
         let kakaoConversationStep = 0;
-        
+
         const conversationFlows = {
             noise: {
                 title: "소음 민원",
@@ -1286,46 +1309,46 @@
         function addMessageToHistory(sender, message, isUser = false, historyId = 'conversationHistory', channelStyle = 'default') {
             const history = document.getElementById(historyId);
             if (!history) return;
-            
+
             const messageDiv = document.createElement('div');
             messageDiv.className = `mb-3 ${isUser ? 'text-right' : 'text-left'}`;
-            
+
             let bubbleClass = '';
             let senderClass = '';
-            
+
             if (channelStyle === 'sms') {
-                bubbleClass = isUser 
-                    ? 'bg-green-500 text-white' 
+                bubbleClass = isUser
+                    ? 'bg-green-500 text-white'
                     : 'bg-gray-100 border border-gray-300 text-gray-800';
                 senderClass = isUser ? 'text-green-100' : 'text-gray-500';
             } else if (channelStyle === 'kakao') {
-                bubbleClass = isUser 
-                    ? 'bg-yellow-400 text-gray-800' 
+                bubbleClass = isUser
+                    ? 'bg-yellow-400 text-gray-800'
                     : 'bg-white border border-yellow-300 text-gray-800';
                 senderClass = isUser ? 'text-yellow-800' : 'text-gray-500';
             } else {
-                bubbleClass = isUser 
-                    ? 'bg-blue-500 text-white' 
+                bubbleClass = isUser
+                    ? 'bg-blue-500 text-white'
                     : 'bg-white border border-gray-200 text-gray-800';
                 senderClass = isUser ? 'text-blue-100' : 'text-gray-500';
             }
-            
+
             const bubble = document.createElement('div');
             bubble.className = `inline-block max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${bubbleClass}`;
-            
+
             const senderSpan = document.createElement('div');
             senderSpan.className = `text-xs ${senderClass} mb-1`;
             senderSpan.textContent = sender;
-            
+
             const messageSpan = document.createElement('div');
             messageSpan.className = 'text-sm whitespace-pre-line';
             messageSpan.textContent = message;
-            
+
             bubble.appendChild(senderSpan);
             bubble.appendChild(messageSpan);
             messageDiv.appendChild(bubble);
             history.appendChild(messageDiv);
-            
+
             // Scroll to bottom
             history.scrollTop = history.scrollHeight;
         }
@@ -1334,23 +1357,23 @@
         function startSMSConversation(type) {
             currentSMSConversation = conversationFlows[type];
             smsConversationStep = 0;
-            
+
             // Clear history
             const history = document.getElementById('smsConversationHistory');
             if (history) {
                 history.innerHTML = '';
             }
-            
+
             // Add initial message
             addMessageToHistory('010-1234-5678', `${currentSMSConversation.title} 문의드립니다.`, true, 'smsConversationHistory', 'sms');
-            
+
             setTimeout(() => {
                 addMessageToHistory('AI 비서', '📝 더 정확한 처리를 위해 몇 가지 질문드리겠습니다.', false, 'smsConversationHistory', 'sms');
                 setTimeout(() => {
                     askNextSMSQuestion();
                 }, 1000);
             }, 500);
-            
+
             // Enable input
             const userResponse = document.getElementById('smsUserResponse');
             const sendResponse = document.getElementById('sendSMSResponse');
@@ -1368,7 +1391,7 @@
                 completeSMSConversation();
                 return;
             }
-            
+
             const step = currentSMSConversation.steps[smsConversationStep];
             addMessageToHistory('AI 비서', step.question, false, 'smsConversationHistory', 'sms');
         }
@@ -1376,18 +1399,18 @@
         function processSMSUserResponse() {
             const userInput = document.getElementById('smsUserResponse');
             if (!userInput || !userInput.value.trim()) return;
-            
+
             const inputValue = userInput.value.trim();
-            
+
             // Add user message
             addMessageToHistory('010-1234-5678', inputValue, true, 'smsConversationHistory', 'sms');
-            
+
             // Clear input
             userInput.value = '';
-            
+
             // Move to next step
             smsConversationStep++;
-            
+
             setTimeout(() => {
                 askNextSMSQuestion();
             }, 1000);
@@ -1398,13 +1421,13 @@
                 addMessageToHistory('AI 비서', '✅ 정보 수집이 완료되었습니다.', false, 'smsConversationHistory', 'sms');
                 setTimeout(() => {
                     addMessageToHistory('AI 비서', currentSMSConversation.completion, false, 'smsConversationHistory', 'sms');
-                    
+
                     // Disable input
                     const userResponse = document.getElementById('smsUserResponse');
                     const sendResponse = document.getElementById('sendSMSResponse');
                     if (userResponse) userResponse.disabled = true;
                     if (sendResponse) sendResponse.disabled = true;
-                    
+
                     currentSMSConversation = null;
                     smsConversationStep = 0;
                 }, 1000);
@@ -1415,23 +1438,23 @@
         function startKakaoConversation(type) {
             currentKakaoConversation = conversationFlows[type];
             kakaoConversationStep = 0;
-            
+
             // Clear history
             const history = document.getElementById('kakaoConversationHistory');
             if (history) {
                 history.innerHTML = '';
             }
-            
+
             // Add initial message
             addMessageToHistory('사용자', `${currentKakaoConversation.title} 문의드립니다.`, true, 'kakaoConversationHistory', 'kakao');
-            
+
             setTimeout(() => {
                 addMessageToHistory('AI 비서', '📝 더 정확한 처리를 위해 몇 가지 질문드리겠습니다.', false, 'kakaoConversationHistory', 'kakao');
                 setTimeout(() => {
                     askNextKakaoQuestion();
                 }, 1000);
             }, 500);
-            
+
             // Enable input
             const userResponse = document.getElementById('kakaoUserResponse');
             const sendResponse = document.getElementById('sendKakaoResponse');
@@ -1449,10 +1472,10 @@
                 completeKakaoConversation();
                 return;
             }
-            
+
             const step = currentKakaoConversation.steps[kakaoConversationStep];
             addMessageToHistory('AI 비서', step.question, false, 'kakaoConversationHistory', 'kakao');
-            
+
             // Add quick response buttons for KakaoTalk
             if (step.options) {
                 setTimeout(() => {
@@ -1464,14 +1487,14 @@
         function addKakaoQuickResponseButtons(options) {
             const history = document.getElementById('kakaoConversationHistory');
             if (!history) return;
-            
+
             const buttonContainer = document.createElement('div');
             buttonContainer.className = 'mb-3 text-left';
             buttonContainer.id = 'kakaoQuickButtons';
-            
+
             const buttonsDiv = document.createElement('div');
             buttonsDiv.className = 'flex flex-wrap gap-2 mt-2';
-            
+
             options.forEach(option => {
                 const button = document.createElement('button');
                 button.className = 'bg-yellow-100 hover:bg-yellow-200 text-yellow-800 px-3 py-1 rounded-full text-sm border border-yellow-300';
@@ -1485,7 +1508,7 @@
                 };
                 buttonsDiv.appendChild(button);
             });
-            
+
             buttonContainer.appendChild(buttonsDiv);
             history.appendChild(buttonContainer);
             history.scrollTop = history.scrollHeight;
@@ -1494,24 +1517,24 @@
         function processKakaoUserResponse() {
             const userInput = document.getElementById('kakaoUserResponse');
             if (!userInput || !userInput.value.trim()) return;
-            
+
             const inputValue = userInput.value.trim();
-            
+
             // Remove quick buttons
             const quickButtons = document.getElementById('kakaoQuickButtons');
             if (quickButtons) {
                 quickButtons.remove();
             }
-            
+
             // Add user message
             addMessageToHistory('사용자', inputValue, true, 'kakaoConversationHistory', 'kakao');
-            
+
             // Clear input
             userInput.value = '';
-            
+
             // Move to next step
             kakaoConversationStep++;
-            
+
             setTimeout(() => {
                 askNextKakaoQuestion();
             }, 1000);
@@ -1522,13 +1545,13 @@
                 addMessageToHistory('AI 비서', '✅ 정보 수집이 완료되었습니다.', false, 'kakaoConversationHistory', 'kakao');
                 setTimeout(() => {
                     addMessageToHistory('AI 비서', currentKakaoConversation.completion, false, 'kakaoConversationHistory', 'kakao');
-                    
+
                     // Disable input
                     const userResponse = document.getElementById('kakaoUserResponse');
                     const sendResponse = document.getElementById('sendKakaoResponse');
                     if (userResponse) userResponse.disabled = true;
                     if (sendResponse) sendResponse.disabled = true;
-                    
+
                     currentKakaoConversation = null;
                     kakaoConversationStep = 0;
                 }, 1000);
@@ -1538,23 +1561,23 @@
         function startConversation(type) {
             currentConversation = conversationFlows[type];
             conversationStep = 0;
-            
+
             // Clear history
             const history = document.getElementById('conversationHistory');
             if (history) {
                 history.innerHTML = '';
             }
-            
+
             // Add initial message
             addMessageToHistory('사용자', `${currentConversation.title} 문의드립니다.`, true);
-            
+
             setTimeout(() => {
                 addMessageToHistory('AI 비서', '📝 더 정확한 처리를 위해 몇 가지 질문드리겠습니다.');
                 setTimeout(() => {
                     askNextQuestion();
                 }, 1000);
             }, 500);
-            
+
             // Enable input
             const userResponse = document.getElementById('userResponse');
             const sendResponse = document.getElementById('sendResponse');
@@ -1572,10 +1595,10 @@
                 completeConversation();
                 return;
             }
-            
+
             const step = currentConversation.steps[conversationStep];
             addMessageToHistory('AI 비서', step.question);
-            
+
             // Add quick response buttons if options exist
             if (step.options) {
                 setTimeout(() => {
@@ -1587,14 +1610,14 @@
         function addQuickResponseButtons(options) {
             const history = document.getElementById('conversationHistory');
             if (!history) return;
-            
+
             const buttonContainer = document.createElement('div');
             buttonContainer.className = 'mb-3 text-left';
             buttonContainer.id = 'quickButtons';
-            
+
             const buttonsDiv = document.createElement('div');
             buttonsDiv.className = 'flex flex-wrap gap-2 mt-2';
-            
+
             options.forEach(option => {
                 const button = document.createElement('button');
                 button.className = 'bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm border';
@@ -1608,7 +1631,7 @@
                 };
                 buttonsDiv.appendChild(button);
             });
-            
+
             buttonContainer.appendChild(buttonsDiv);
             history.appendChild(buttonContainer);
             history.scrollTop = history.scrollHeight;
@@ -1617,24 +1640,24 @@
         function processUserResponse() {
             const userInput = document.getElementById('userResponse');
             if (!userInput || !userInput.value.trim()) return;
-            
+
             const inputValue = userInput.value.trim();
-            
+
             // Remove quick buttons
             const quickButtons = document.getElementById('quickButtons');
             if (quickButtons) {
                 quickButtons.remove();
             }
-            
+
             // Add user message
             addMessageToHistory('사용자', inputValue, true);
-            
+
             // Clear input
             userInput.value = '';
-            
+
             // Move to next step
             conversationStep++;
-            
+
             setTimeout(() => {
                 askNextQuestion();
             }, 1000);
@@ -1645,13 +1668,13 @@
                 addMessageToHistory('AI 비서', '✅ 정보 수집이 완료되었습니다.');
                 setTimeout(() => {
                     addMessageToHistory('AI 비서', currentConversation.completion);
-                    
+
                     // Disable input
                     const userResponse = document.getElementById('userResponse');
                     const sendResponse = document.getElementById('sendResponse');
                     if (userResponse) userResponse.disabled = true;
                     if (sendResponse) sendResponse.disabled = true;
-                    
+
                     currentConversation = null;
                     conversationStep = 0;
                 }, 1000);
@@ -1659,7 +1682,7 @@
         }
 
         // Event listeners for all conversation simulators
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             // Main AI Conversation Simulator
             const startNoiseBtn = document.getElementById('startNoiseConversation');
             const startFacilityBtn = document.getElementById('startFacilityConversation');
@@ -1674,18 +1697,18 @@
             if (startEmergencyBtn) startEmergencyBtn.addEventListener('click', () => startConversation('emergency'));
 
             if (conversationForm) {
-                conversationForm.addEventListener('submit', function(e) {
+                conversationForm.addEventListener('submit', function (e) {
                     e.preventDefault();
                     processUserResponse();
                 });
             }
 
             if (clearBtn) {
-                clearBtn.addEventListener('click', function() {
+                clearBtn.addEventListener('click', function () {
                     const history = document.getElementById('conversationHistory');
                     const userResponse = document.getElementById('userResponse');
                     const sendResponse = document.getElementById('sendResponse');
-                    
+
                     if (history) {
                         history.innerHTML = '<div class="text-sm text-gray-500 text-center">대화 기록이 여기에 표시됩니다</div>';
                     }
@@ -1696,7 +1719,7 @@
                     if (sendResponse) {
                         sendResponse.disabled = true;
                     }
-                    
+
                     currentConversation = null;
                     conversationStep = 0;
                 });
@@ -1716,18 +1739,18 @@
             if (startSMSEmergencyBtn) startSMSEmergencyBtn.addEventListener('click', () => startSMSConversation('emergency'));
 
             if (smsConversationForm) {
-                smsConversationForm.addEventListener('submit', function(e) {
+                smsConversationForm.addEventListener('submit', function (e) {
                     e.preventDefault();
                     processSMSUserResponse();
                 });
             }
 
             if (clearSMSBtn) {
-                clearSMSBtn.addEventListener('click', function() {
+                clearSMSBtn.addEventListener('click', function () {
                     const history = document.getElementById('smsConversationHistory');
                     const userResponse = document.getElementById('smsUserResponse');
                     const sendResponse = document.getElementById('sendSMSResponse');
-                    
+
                     if (history) {
                         history.innerHTML = '<div class="text-sm text-gray-500 text-center">SMS 대화 기록이 여기에 표시됩니다</div>';
                     }
@@ -1738,7 +1761,7 @@
                     if (sendResponse) {
                         sendResponse.disabled = true;
                     }
-                    
+
                     currentSMSConversation = null;
                     smsConversationStep = 0;
                 });
@@ -1758,18 +1781,18 @@
             if (startKakaoEmergencyBtn) startKakaoEmergencyBtn.addEventListener('click', () => startKakaoConversation('emergency'));
 
             if (kakaoConversationForm) {
-                kakaoConversationForm.addEventListener('submit', function(e) {
+                kakaoConversationForm.addEventListener('submit', function (e) {
                     e.preventDefault();
                     processKakaoUserResponse();
                 });
             }
 
             if (clearKakaoBtn) {
-                clearKakaoBtn.addEventListener('click', function() {
+                clearKakaoBtn.addEventListener('click', function () {
                     const history = document.getElementById('kakaoConversationHistory');
                     const userResponse = document.getElementById('kakaoUserResponse');
                     const sendResponse = document.getElementById('sendKakaoResponse');
-                    
+
                     if (history) {
                         history.innerHTML = '<div class="text-sm text-gray-500 text-center">카카오톡 대화 기록이 여기에 표시됩니다</div>';
                     }
@@ -1780,7 +1803,7 @@
                     if (sendResponse) {
                         sendResponse.disabled = true;
                     }
-                    
+
                     currentKakaoConversation = null;
                     kakaoConversationStep = 0;
                 });

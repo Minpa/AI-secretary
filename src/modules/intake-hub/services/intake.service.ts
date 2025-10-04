@@ -52,31 +52,31 @@ export class IntakeService {
       inMemoryStore.saveMessage(message);
       logger.info('Message processed and saved', { messageId: message.id, channel: input.channel });
 
-      // Auto-create ticket for high/urgent priority messages from all channels
-      if (message.priority === Priority.HIGH || message.priority === Priority.URGENT) {
-        try {
-          // Auto-classify high/urgent messages and create tickets
-          message.status = IntakeStatus.CLASSIFIED;
-          message.classification = this.autoClassifyMessage(message.content);
-          inMemoryStore.saveMessage(message); // Update with classification
-          
-          const ticketId = await this.ticketIntegrationService.createTicketFromMessage(message);
-          if (ticketId) {
-            logger.info('Ticket auto-created for high/urgent priority message', { 
-              messageId: message.id, 
-              ticketId,
-              channel: input.channel,
-              priority: message.priority
-            });
-          }
-        } catch (error) {
-          logger.error('Failed to auto-create ticket for high/urgent message', { 
-            error, 
-            messageId: message.id,
-            channel: input.channel 
+      // Auto-classify all messages and create tickets for classified messages
+      try {
+        // Auto-classify the message
+        message.classification = this.autoClassifyMessage(message.content);
+        message.status = IntakeStatus.CLASSIFIED;
+        inMemoryStore.saveMessage(message); // Update with classification
+        
+        // Create ticket for all classified messages (not just high/urgent priority)
+        const ticketId = await this.ticketIntegrationService.createTicketFromMessage(message);
+        if (ticketId) {
+          logger.info('Ticket auto-created from classified message', { 
+            messageId: message.id, 
+            ticketId,
+            channel: input.channel,
+            priority: message.priority,
+            classification: message.classification
           });
-          // Don't fail the message processing if ticket creation fails
         }
+      } catch (error) {
+        logger.error('Failed to auto-classify message or create ticket', { 
+          error, 
+          messageId: message.id,
+          channel: input.channel 
+        });
+        // Don't fail the message processing if classification/ticket creation fails
       }
 
       return message;
