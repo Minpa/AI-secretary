@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Secretary - 시스템 테스트</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <style>
         .gradient-bg {
@@ -12,6 +14,7 @@
         }
     </style>
 </head>
+
 <body class="bg-gray-50">
     <!-- Navigation -->
     <nav class="gradient-bg shadow-lg">
@@ -44,19 +47,61 @@
                 <form id="smsForm">
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-2">발신번호</label>
-                        <input type="text" id="smsFrom" class="w-full px-3 py-2 border border-gray-300 rounded-md" 
-                               placeholder="010-1234-5678" value="010-1234-5678">
+                        <input type="text" id="smsFrom" class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                            placeholder="010-1234-5678" value="010-1234-5678">
                     </div>
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-2">메시지 내용</label>
-                        <textarea id="smsBody" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md" 
-                                  placeholder="엘리베이터가 고장났어요">엘리베이터가 고장났어요</textarea>
+                        <textarea id="smsBody" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                            placeholder="엘리베이터가 고장났어요">엘리베이터가 고장났어요</textarea>
                     </div>
                     <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700">
                         SMS 전송 테스트
                     </button>
                 </form>
                 <div id="smsResult" class="mt-4 hidden"></div>
+                
+                <!-- SMS AI Conversation Simulator -->
+                <div class="mt-6 pt-6 border-t border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900 mb-3">💬 SMS AI 대화 시뮬레이터</h3>
+                    <p class="text-sm text-gray-600 mb-4">SMS로 AI가 어떻게 상세 정보를 수집하는지 확인해보세요</p>
+                    
+                    <!-- SMS Conversation History -->
+                    <div id="smsConversationHistory" class="bg-gray-50 border rounded-lg p-4 mb-4 max-h-80 overflow-y-auto">
+                        <div class="text-sm text-gray-500 text-center">SMS 대화 기록이 여기에 표시됩니다</div>
+                    </div>
+                    
+                    <!-- SMS Quick Start Buttons -->
+                    <div class="grid grid-cols-2 gap-2 mb-4">
+                        <button type="button" id="startSMSNoise" class="bg-blue-500 text-white px-3 py-2 rounded text-sm hover:bg-blue-600">
+                            🔇 SMS 소음 민원
+                        </button>
+                        <button type="button" id="startSMSFacility" class="bg-green-500 text-white px-3 py-2 rounded text-sm hover:bg-green-600">
+                            🔧 SMS 시설 고장
+                        </button>
+                        <button type="button" id="startSMSParking" class="bg-purple-500 text-white px-3 py-2 rounded text-sm hover:bg-purple-600">
+                            🚗 SMS 주차 문제
+                        </button>
+                        <button type="button" id="startSMSEmergency" class="bg-red-500 text-white px-3 py-2 rounded text-sm hover:bg-red-600">
+                            🚨 SMS 긴급상황
+                        </button>
+                    </div>
+                    
+                    <!-- SMS User Response Input -->
+                    <form id="smsConversationForm">
+                        <div class="flex gap-2">
+                            <input type="text" id="smsUserResponse" class="flex-1 px-3 py-2 border border-gray-300 rounded-md" 
+                                   placeholder="SMS로 AI 질문에 답변하세요..." disabled>
+                            <button type="submit" id="sendSMSResponse" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700" disabled>
+                                SMS 전송
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <button type="button" id="clearSMSConversation" class="mt-2 text-sm text-gray-500 hover:text-gray-700">
+                        SMS 대화 기록 지우기
+                    </button>
+                </div>
             </div>
 
             <!-- Email Test -->
@@ -65,20 +110,21 @@
                 <form id="emailForm">
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-2">발신자</label>
-                        <input type="email" id="emailFrom" class="w-full px-3 py-2 border border-gray-300 rounded-md" 
-                               placeholder="resident@example.com" value="resident@example.com">
+                        <input type="email" id="emailFrom" class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                            placeholder="resident@example.com" value="resident@example.com">
                     </div>
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-2">제목</label>
-                        <input type="text" id="emailSubject" class="w-full px-3 py-2 border border-gray-300 rounded-md" 
-                               placeholder="소음 민원" value="소음 민원">
+                        <input type="text" id="emailSubject" class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                            placeholder="소음 민원" value="소음 민원">
                     </div>
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-2">내용</label>
-                        <textarea id="emailBody" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md" 
-                                  placeholder="윗집 소음이 심합니다">윗집 소음이 심합니다</textarea>
+                        <textarea id="emailBody" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                            placeholder="윗집 소음이 심합니다">윗집 소음이 심합니다</textarea>
                     </div>
-                    <button type="submit" class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700">
+                    <button type="submit"
+                        class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700">
                         이메일 전송 테스트
                     </button>
                 </form>
@@ -91,20 +137,21 @@
                 <form id="webForm">
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-2">이름</label>
-                        <input type="text" id="webName" class="w-full px-3 py-2 border border-gray-300 rounded-md" 
-                               placeholder="홍길동" value="홍길동">
+                        <input type="text" id="webName" class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                            placeholder="홍길동" value="홍길동">
                     </div>
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-2">이메일</label>
-                        <input type="email" id="webEmail" class="w-full px-3 py-2 border border-gray-300 rounded-md" 
-                               placeholder="hong@example.com" value="hong@example.com">
+                        <input type="email" id="webEmail" class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                            placeholder="hong@example.com" value="hong@example.com">
                     </div>
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-2">문의 내용</label>
-                        <textarea id="webMessage" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md" 
-                                  placeholder="주차장 문제가 있습니다">주차장 문제가 있습니다</textarea>
+                        <textarea id="webMessage" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                            placeholder="주차장 문제가 있습니다">주차장 문제가 있습니다</textarea>
                     </div>
-                    <button type="submit" class="w-full bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700">
+                    <button type="submit"
+                        class="w-full bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700">
                         웹폼 제출 테스트
                     </button>
                 </form>
@@ -117,27 +164,30 @@
                 <form id="callForm">
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-2">발신번호</label>
-                        <input type="text" id="callCaller" class="w-full px-3 py-2 border border-gray-300 rounded-md" 
-                               placeholder="010-9876-5432" value="010-9876-5432">
+                        <input type="text" id="callCaller" class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                            placeholder="010-9876-5432" value="010-9876-5432">
                     </div>
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-2">통화 시간 (분)</label>
-                        <input type="number" id="callDuration" class="w-full px-3 py-2 border border-gray-300 rounded-md" 
-                               placeholder="10" value="10">
+                        <input type="number" id="callDuration"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md" placeholder="10" value="10">
                     </div>
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-2">통화 내용 (음성인식)</label>
                         <div class="flex gap-2 mb-2">
-                            <button type="button" id="startRecording" class="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700">
+                            <button type="button" id="startRecording"
+                                class="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700">
                                 🎤 음성 녹음 시작
                             </button>
-                            <button type="button" id="stopRecording" class="bg-gray-600 text-white px-3 py-1 rounded text-sm hover:bg-gray-700" disabled>
+                            <button type="button" id="stopRecording"
+                                class="bg-gray-600 text-white px-3 py-1 rounded text-sm hover:bg-gray-700" disabled>
                                 ⏹️ 녹음 중지
                             </button>
                             <span id="recordingStatus" class="text-sm text-gray-500 self-center"></span>
                         </div>
-                        <textarea id="callTranscript" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md" 
-                                  placeholder="관리비 문의드립니다 (또는 위 버튼으로 음성 녹음)">관리비 문의드립니다</textarea>
+                        <textarea id="callTranscript" rows="3"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                            placeholder="관리비 문의드립니다 (또는 위 버튼으로 음성 녹음)">관리비 문의드립니다</textarea>
                     </div>
                     <button type="submit" class="w-full bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700">
                         통화 기록 테스트
@@ -152,8 +202,8 @@
                 <form id="kakaoForm">
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-2">사용자 키</label>
-                        <input type="text" id="kakaoUserKey" class="w-full px-3 py-2 border border-gray-300 rounded-md" 
-                               placeholder="user_12345" value="user_12345">
+                        <input type="text" id="kakaoUserKey" class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                            placeholder="user_12345" value="user_12345">
                     </div>
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-2">메시지 타입</label>
@@ -170,30 +220,118 @@
                                 샘플 메시지 사용
                             </button>
                         </div>
-                        <textarea id="kakaoContent" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md" 
-                                  placeholder="102동 1205호 화장실 변기가 막혔어요">102동 1205호 화장실 변기가 막혔어요</textarea>
+                        <textarea id="kakaoContent" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                            placeholder="102동 1205호 화장실 변기가 막혔어요">102동 1205호 화장실 변기가 막혔어요</textarea>
                     </div>
-                    <button type="submit" class="w-full bg-yellow-500 text-white py-2 px-4 rounded-md hover:bg-yellow-600">
+                    <button type="submit"
+                        class="w-full bg-yellow-500 text-white py-2 px-4 rounded-md hover:bg-yellow-600">
                         카카오톡 메시지 테스트
                     </button>
                 </form>
                 <div id="kakaoResult" class="mt-4 hidden"></div>
-                
+
+                <!-- KakaoTalk AI Conversation Simulator -->
+                <div class="mt-6 pt-6 border-t border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900 mb-3">💬 카카오톡 AI 대화 시뮬레이터</h3>
+                    <p class="text-sm text-gray-600 mb-4">카카오톡으로 AI가 어떻게 상세 정보를 수집하는지 확인해보세요</p>
+                    
+                    <!-- KakaoTalk Conversation History -->
+                    <div id="kakaoConversationHistory" class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4 max-h-80 overflow-y-auto">
+                        <div class="text-sm text-gray-500 text-center">카카오톡 대화 기록이 여기에 표시됩니다</div>
+                    </div>
+                    
+                    <!-- KakaoTalk Quick Start Buttons -->
+                    <div class="grid grid-cols-2 gap-2 mb-4">
+                        <button type="button" id="startKakaoNoise" class="bg-yellow-500 text-white px-3 py-2 rounded text-sm hover:bg-yellow-600">
+                            🔇 카톡 소음 민원
+                        </button>
+                        <button type="button" id="startKakaoFacility" class="bg-yellow-600 text-white px-3 py-2 rounded text-sm hover:bg-yellow-700">
+                            🔧 카톡 시설 고장
+                        </button>
+                        <button type="button" id="startKakaoParking" class="bg-yellow-400 text-white px-3 py-2 rounded text-sm hover:bg-yellow-500">
+                            🚗 카톡 주차 문제
+                        </button>
+                        <button type="button" id="startKakaoEmergency" class="bg-red-500 text-white px-3 py-2 rounded text-sm hover:bg-red-600">
+                            🚨 카톡 긴급상황
+                        </button>
+                    </div>
+                    
+                    <!-- KakaoTalk User Response Input -->
+                    <form id="kakaoConversationForm">
+                        <div class="flex gap-2">
+                            <input type="text" id="kakaoUserResponse" class="flex-1 px-3 py-2 border border-yellow-300 rounded-md" 
+                                   placeholder="카카오톡으로 AI 질문에 답변하세요..." disabled>
+                            <button type="submit" id="sendKakaoResponse" class="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600" disabled>
+                                카톡 전송
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <button type="button" id="clearKakaoConversation" class="mt-2 text-sm text-gray-500 hover:text-gray-700">
+                        카카오톡 대화 기록 지우기
+                    </button>
+                </div>
+
+                <!-- AI Conversation Simulator -->
+                <div class="mt-6 pt-6 border-t border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900 mb-3">🤖 AI 대화 시뮬레이터</h3>
+                    <p class="text-sm text-gray-600 mb-4">AI가 어떻게 상세 정보를 수집하는지 확인해보세요</p>
+                    
+                    <!-- Conversation History -->
+                    <div id="conversationHistory" class="bg-gray-50 border rounded-lg p-4 mb-4 max-h-96 overflow-y-auto">
+                        <div class="text-sm text-gray-500 text-center">대화 기록이 여기에 표시됩니다</div>
+                    </div>
+                    
+                    <!-- Quick Start Buttons -->
+                    <div class="grid grid-cols-2 gap-2 mb-4">
+                        <button type="button" id="startNoiseConversation" class="bg-blue-500 text-white px-3 py-2 rounded text-sm hover:bg-blue-600">
+                            🔇 소음 민원 시작
+                        </button>
+                        <button type="button" id="startFacilityConversation" class="bg-green-500 text-white px-3 py-2 rounded text-sm hover:bg-green-600">
+                            🔧 시설 고장 시작
+                        </button>
+                        <button type="button" id="startParkingConversation" class="bg-purple-500 text-white px-3 py-2 rounded text-sm hover:bg-purple-600">
+                            🚗 주차 문제 시작
+                        </button>
+                        <button type="button" id="startEmergencyConversation" class="bg-red-500 text-white px-3 py-2 rounded text-sm hover:bg-red-600">
+                            🚨 긴급상황 시작
+                        </button>
+                    </div>
+                    
+                    <!-- User Response Input -->
+                    <form id="conversationResponseForm">
+                        <div class="flex gap-2">
+                            <input type="text" id="userResponse" class="flex-1 px-3 py-2 border border-gray-300 rounded-md" 
+                                   placeholder="AI 질문에 답변하세요..." disabled>
+                            <button type="submit" id="sendResponse" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700" disabled>
+                                전송
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <button type="button" id="clearConversation" class="mt-2 text-sm text-gray-500 hover:text-gray-700">
+                        대화 기록 지우기
+                    </button>
+                </div>
+
                 <!-- KakaoTalk Conversation Response Test -->
                 <div class="mt-6 pt-6 border-t border-gray-200">
-                    <h3 class="text-lg font-medium text-gray-900 mb-3">💬 대화 응답 테스트</h3>
+                    <h3 class="text-lg font-medium text-gray-900 mb-3">💬 대화 응답 테스트 (API)</h3>
                     <form id="kakaoResponseForm">
                         <div class="mb-4">
                             <label class="block text-sm font-medium text-gray-700 mb-2">메시지 ID</label>
-                            <input type="text" id="kakaoResponseMessageId" class="w-full px-3 py-2 border border-gray-300 rounded-md" 
-                                   placeholder="msg_1234567890_abcdef">
+                            <input type="text" id="kakaoResponseMessageId"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                placeholder="msg_1234567890_abcdef">
                         </div>
                         <div class="mb-4">
                             <label class="block text-sm font-medium text-gray-700 mb-2">사용자 응답</label>
-                            <textarea id="kakaoResponseContent" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-md" 
-                                      placeholder="엘리베이터">엘리베이터</textarea>
+                            <textarea id="kakaoResponseContent" rows="2"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                placeholder="엘리베이터">엘리베이터</textarea>
                         </div>
-                        <button type="submit" class="w-full bg-yellow-400 text-white py-2 px-4 rounded-md hover:bg-yellow-500">
+                        <button type="submit"
+                            class="w-full bg-yellow-400 text-white py-2 px-4 rounded-md hover:bg-yellow-500">
                             대화 응답 테스트
                         </button>
                     </form>
@@ -206,12 +344,12 @@
         <div class="mt-8 bg-white shadow rounded-lg p-6">
             <h2 class="text-xl font-semibold text-gray-900 mb-4">🤖 LLM 관리</h2>
             <p class="text-sm text-gray-600 mb-6">로컬 Mistral-7B 모델 제어 및 테스트</p>
-            
+
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <!-- LLM Status & Control -->
                 <div>
                     <h3 class="text-lg font-medium text-gray-900 mb-3">상태 및 제어</h3>
-                    
+
                     <!-- Status Display -->
                     <div id="llmStatus" class="p-4 bg-gray-50 rounded-md mb-4">
                         <div class="flex items-center justify-between mb-2">
@@ -236,19 +374,24 @@
                         </div>
                         <label class="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" id="llmToggle" class="sr-only peer">
-                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                            <div
+                                class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
+                            </div>
                         </label>
                     </div>
 
-                    <button id="refreshLLMStatus" class="w-full bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700 mb-2">
+                    <button id="refreshLLMStatus"
+                        class="w-full bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700 mb-2">
                         🔄 상태 새로고침
                     </button>
-                    
-                    <button id="checkCurrentStatus" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 mb-2">
+
+                    <button id="checkCurrentStatus"
+                        class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 mb-2">
                         🔍 현재 상태 확인
                     </button>
-                    
-                    <button id="manualLoadStatus" class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700">
+
+                    <button id="manualLoadStatus"
+                        class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700">
                         🔧 수동 상태 로드
                     </button>
                 </div>
@@ -256,25 +399,25 @@
                 <!-- LLM Test -->
                 <div>
                     <h3 class="text-lg font-medium text-gray-900 mb-3">LLM 분류 테스트</h3>
-                    <textarea 
-                        id="llmTestText" 
-                        rows="4" 
+                    <textarea id="llmTestText" rows="4"
                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
-                        placeholder="분류할 메시지를 입력하세요..."
-                    >101동 1502호에서 윗집 소음 때문에 고생하고 있습니다. 밤늦게까지 쿵쿵거리는 소리가 나서 잠을 잘 수가 없어요.</textarea>
-                    
-                    <button id="testLLM" class="w-full bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 mb-2">
+                        placeholder="분류할 메시지를 입력하세요...">101동 1502호에서 윗집 소음 때문에 고생하고 있습니다. 밤늦게까지 쿵쿵거리는 소리가 나서 잠을 잘 수가 없어요.</textarea>
+
+                    <button id="testLLM"
+                        class="w-full bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 mb-2">
                         🤖 LLM 분류 테스트
                     </button>
-                    
-                    <button id="testLLMKeywords" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 mb-2">
+
+                    <button id="testLLMKeywords"
+                        class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 mb-2">
                         🔍 LLM 키워드 분석
                     </button>
-                    
-                    <button id="testApartmentParsing" class="w-full bg-orange-600 text-white py-2 px-4 rounded-md hover:bg-orange-700 mb-4">
+
+                    <button id="testApartmentParsing"
+                        class="w-full bg-orange-600 text-white py-2 px-4 rounded-md hover:bg-orange-700 mb-4">
                         🏢 아파트 동/호수 분석
                     </button>
-                    
+
                     <div id="llmTestResult" class="hidden"></div>
                     <div id="llmKeywordsResult" class="hidden"></div>
                     <div id="apartmentParsingResult" class="hidden"></div>
@@ -289,7 +432,8 @@
                 <!-- Get Messages -->
                 <div>
                     <h3 class="text-lg font-medium text-gray-900 mb-3">메시지 목록 조회</h3>
-                    <button id="getMessages" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 mb-4">
+                    <button id="getMessages"
+                        class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 mb-4">
                         메시지 목록 가져오기
                     </button>
                     <div id="messagesResult" class="hidden"></div>
@@ -301,31 +445,37 @@
                     <form id="statusUpdateForm">
                         <div class="mb-4">
                             <label class="block text-sm font-medium text-gray-700 mb-2">메시지 ID</label>
-                            <input type="text" id="messageId" class="w-full px-3 py-2 border border-gray-300 rounded-md" 
-                                   placeholder="msg_1234567890_abcdef">
+                            <input type="text" id="messageId" class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                placeholder="msg_1234567890_abcdef">
                         </div>
                         <div class="mb-4">
                             <label class="block text-sm font-medium text-gray-700 mb-2">새 상태</label>
                             <div class="space-y-2">
                                 <div class="flex items-center">
-                                    <input type="radio" id="statusPending" name="newStatus" value="pending" class="mr-2">
+                                    <input type="radio" id="statusPending" name="newStatus" value="pending"
+                                        class="mr-2">
                                     <label for="statusPending" class="text-sm text-gray-700">대기중 (pending)</label>
                                 </div>
                                 <div class="flex items-center">
-                                    <input type="radio" id="statusClassified" name="newStatus" value="classified" class="mr-2">
-                                    <label for="statusClassified" class="text-sm text-gray-700">분류완료 (classified)</label>
+                                    <input type="radio" id="statusClassified" name="newStatus" value="classified"
+                                        class="mr-2">
+                                    <label for="statusClassified" class="text-sm text-gray-700">분류완료
+                                        (classified)</label>
                                 </div>
                                 <div class="flex items-center">
-                                    <input type="radio" id="statusAssigned" name="newStatus" value="assigned" class="mr-2">
+                                    <input type="radio" id="statusAssigned" name="newStatus" value="assigned"
+                                        class="mr-2">
                                     <label for="statusAssigned" class="text-sm text-gray-700">할당됨 (assigned)</label>
                                 </div>
                                 <div class="flex items-center">
-                                    <input type="radio" id="statusProcessed" name="newStatus" value="processed" class="mr-2">
+                                    <input type="radio" id="statusProcessed" name="newStatus" value="processed"
+                                        class="mr-2">
                                     <label for="statusProcessed" class="text-sm text-gray-700">처리완료 (processed)</label>
                                 </div>
                             </div>
                         </div>
-                        <button type="submit" class="w-full bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700">
+                        <button type="submit"
+                            class="w-full bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700">
                             상태 업데이트
                         </button>
                     </form>
@@ -354,14 +504,14 @@
         }
 
         // SMS Form
-        document.getElementById('smsForm').addEventListener('submit', function(e) {
+        document.getElementById('smsForm').addEventListener('submit', function (e) {
             e.preventDefault();
-            
+
             const xhr = new XMLHttpRequest();
             xhr.open('POST', '/api/intake/sms', true);
             xhr.setRequestHeader('Content-Type', 'application/json');
-            
-            xhr.onreadystatechange = function() {
+
+            xhr.onreadystatechange = function () {
                 if (xhr.readyState === 4) {
                     try {
                         const data = JSON.parse(xhr.responseText);
@@ -371,11 +521,11 @@
                     }
                 }
             };
-            
-            xhr.onerror = function() {
+
+            xhr.onerror = function () {
                 displayResult('smsResult', { error: 'Network error' }, true);
             };
-            
+
             xhr.send(JSON.stringify({
                 from: document.getElementById('smsFrom').value,
                 body: document.getElementById('smsBody').value
@@ -383,14 +533,14 @@
         });
 
         // Email Form
-        document.getElementById('emailForm').addEventListener('submit', function(e) {
+        document.getElementById('emailForm').addEventListener('submit', function (e) {
             e.preventDefault();
-            
+
             const xhr = new XMLHttpRequest();
             xhr.open('POST', '/api/intake/email', true);
             xhr.setRequestHeader('Content-Type', 'application/json');
-            
-            xhr.onreadystatechange = function() {
+
+            xhr.onreadystatechange = function () {
                 if (xhr.readyState === 4) {
                     try {
                         const data = JSON.parse(xhr.responseText);
@@ -400,11 +550,11 @@
                     }
                 }
             };
-            
-            xhr.onerror = function() {
+
+            xhr.onerror = function () {
                 displayResult('emailResult', { error: 'Network error' }, true);
             };
-            
+
             xhr.send(JSON.stringify({
                 from: document.getElementById('emailFrom').value,
                 subject: document.getElementById('emailSubject').value,
@@ -413,14 +563,14 @@
         });
 
         // Web Form
-        document.getElementById('webForm').addEventListener('submit', function(e) {
+        document.getElementById('webForm').addEventListener('submit', function (e) {
             e.preventDefault();
-            
+
             const xhr = new XMLHttpRequest();
             xhr.open('POST', '/api/intake/web', true);
             xhr.setRequestHeader('Content-Type', 'application/json');
-            
-            xhr.onreadystatechange = function() {
+
+            xhr.onreadystatechange = function () {
                 if (xhr.readyState === 4) {
                     try {
                         const data = JSON.parse(xhr.responseText);
@@ -430,11 +580,11 @@
                     }
                 }
             };
-            
-            xhr.onerror = function() {
+
+            xhr.onerror = function () {
                 displayResult('webResult', { error: 'Network error' }, true);
             };
-            
+
             xhr.send(JSON.stringify({
                 name: document.getElementById('webName').value,
                 email: document.getElementById('webEmail').value,
@@ -443,14 +593,14 @@
         });
 
         // Call Form
-        document.getElementById('callForm').addEventListener('submit', function(e) {
+        document.getElementById('callForm').addEventListener('submit', function (e) {
             e.preventDefault();
-            
+
             const xhr = new XMLHttpRequest();
             xhr.open('POST', '/api/intake/call', true);
             xhr.setRequestHeader('Content-Type', 'application/json');
-            
-            xhr.onreadystatechange = function() {
+
+            xhr.onreadystatechange = function () {
                 if (xhr.readyState === 4) {
                     try {
                         const data = JSON.parse(xhr.responseText);
@@ -460,11 +610,11 @@
                     }
                 }
             };
-            
-            xhr.onerror = function() {
+
+            xhr.onerror = function () {
                 displayResult('callResult', { error: 'Network error' }, true);
             };
-            
+
             xhr.send(JSON.stringify({
                 caller: document.getElementById('callCaller').value,
                 duration: parseInt(document.getElementById('callDuration').value),
@@ -473,19 +623,19 @@
         });
 
         // KakaoTalk Form
-        document.getElementById('kakaoForm').addEventListener('submit', function(e) {
+        document.getElementById('kakaoForm').addEventListener('submit', function (e) {
             e.preventDefault();
-            
+
             const xhr = new XMLHttpRequest();
             xhr.open('POST', '/api/intake/kakaotalk', true);
             xhr.setRequestHeader('Content-Type', 'application/json');
-            
-            xhr.onreadystatechange = function() {
+
+            xhr.onreadystatechange = function () {
                 if (xhr.readyState === 4) {
                     try {
                         const data = JSON.parse(xhr.responseText);
                         displayResult('kakaoResult', data, xhr.status !== 200);
-                        
+
                         // Auto-fill message ID for conversation response test
                         if (data.success && data.data && data.data.id) {
                             document.getElementById('kakaoResponseMessageId').value = data.data.id;
@@ -495,11 +645,11 @@
                     }
                 }
             };
-            
-            xhr.onerror = function() {
+
+            xhr.onerror = function () {
                 displayResult('kakaoResult', { error: 'Network error' }, true);
             };
-            
+
             xhr.send(JSON.stringify({
                 user_key: document.getElementById('kakaoUserKey').value,
                 content: document.getElementById('kakaoContent').value,
@@ -508,7 +658,7 @@
         });
 
         // KakaoTalk Sample Messages
-        document.getElementById('kakaoSampleBtn').addEventListener('click', function() {
+        document.getElementById('kakaoSampleBtn').addEventListener('click', function () {
             const samples = [
                 "102동 1205호 엘리베이터가 고장났어요",
                 "윗집 소음이 너무 심해서 잠을 못자겠어요",
@@ -523,14 +673,14 @@
         });
 
         // KakaoTalk Response Form
-        document.getElementById('kakaoResponseForm').addEventListener('submit', function(e) {
+        document.getElementById('kakaoResponseForm').addEventListener('submit', function (e) {
             e.preventDefault();
-            
+
             const xhr = new XMLHttpRequest();
             xhr.open('POST', '/api/intake/kakaotalk/response', true);
             xhr.setRequestHeader('Content-Type', 'application/json');
-            
-            xhr.onreadystatechange = function() {
+
+            xhr.onreadystatechange = function () {
                 if (xhr.readyState === 4) {
                     try {
                         const data = JSON.parse(xhr.responseText);
@@ -540,11 +690,11 @@
                     }
                 }
             };
-            
-            xhr.onerror = function() {
+
+            xhr.onerror = function () {
                 displayResult('kakaoResponseResult', { error: 'Network error' }, true);
             };
-            
+
             xhr.send(JSON.stringify({
                 user_key: document.getElementById('kakaoUserKey').value,
                 content: document.getElementById('kakaoResponseContent').value,
@@ -553,12 +703,12 @@
         });
 
         // Get Messages
-        document.getElementById('getMessages').addEventListener('click', function() {
+        document.getElementById('getMessages').addEventListener('click', function () {
             const xhr = new XMLHttpRequest();
             xhr.open('GET', '/api/intake/messages', true);
             xhr.setRequestHeader('Accept', 'application/json');
-            
-            xhr.onreadystatechange = function() {
+
+            xhr.onreadystatechange = function () {
                 if (xhr.readyState === 4) {
                     try {
                         const data = JSON.parse(xhr.responseText);
@@ -568,18 +718,18 @@
                     }
                 }
             };
-            
-            xhr.onerror = function() {
+
+            xhr.onerror = function () {
                 displayResult('messagesResult', { error: 'Network error' }, true);
             };
-            
+
             xhr.send();
         });
 
         // Status Update Form
-        document.getElementById('statusUpdateForm').addEventListener('submit', function(e) {
+        document.getElementById('statusUpdateForm').addEventListener('submit', function (e) {
             e.preventDefault();
-            
+
             const messageId = document.getElementById('messageId').value;
             const newStatusEl = document.querySelector('input[name="newStatus"]:checked');
             const newStatus = newStatusEl ? newStatusEl.value : null;
@@ -592,8 +742,8 @@
             const xhr = new XMLHttpRequest();
             xhr.open('PATCH', '/api/intake/messages/' + messageId + '/status', true);
             xhr.setRequestHeader('Content-Type', 'application/json');
-            
-            xhr.onreadystatechange = function() {
+
+            xhr.onreadystatechange = function () {
                 if (xhr.readyState === 4) {
                     try {
                         const data = JSON.parse(xhr.responseText);
@@ -603,21 +753,21 @@
                     }
                 }
             };
-            
-            xhr.onerror = function() {
+
+            xhr.onerror = function () {
                 displayResult('statusUpdateResult', { error: 'Network error' }, true);
             };
-            
+
             xhr.send(JSON.stringify({ status: newStatus }));
         });
 
         // Health Check
-        document.getElementById('healthCheck').addEventListener('click', function() {
+        document.getElementById('healthCheck').addEventListener('click', function () {
             const xhr = new XMLHttpRequest();
             xhr.open('GET', '/health', true);
             xhr.setRequestHeader('Accept', 'application/json');
-            
-            xhr.onreadystatechange = function() {
+
+            xhr.onreadystatechange = function () {
                 if (xhr.readyState === 4) {
                     try {
                         const data = JSON.parse(xhr.responseText);
@@ -627,60 +777,60 @@
                     }
                 }
             };
-            
-            xhr.onerror = function() {
+
+            xhr.onerror = function () {
                 displayResult('healthResult', { error: 'Network error' }, true);
             };
-            
+
             xhr.send();
         });
 
         // LLM Management Functions
         function loadLLMStatus() {
             console.log('🔄 Loading LLM status...');
-            
+
             // Check if elements exist first
             const statusTextEl = document.getElementById('llmStatusText');
             const modelEl = document.getElementById('llmModel');
             const availableEl = document.getElementById('llmAvailable');
             const toggleEl = document.getElementById('llmToggle');
-            
-            console.log('🔍 DOM elements check:', { 
-                statusTextEl: !!statusTextEl, 
-                modelEl: !!modelEl, 
-                availableEl: !!availableEl, 
-                toggleEl: !!toggleEl 
+
+            console.log('🔍 DOM elements check:', {
+                statusTextEl: !!statusTextEl,
+                modelEl: !!modelEl,
+                availableEl: !!availableEl,
+                toggleEl: !!toggleEl
             });
-            
+
             if (!statusTextEl) {
                 console.error('❌ llmStatusText element not found!');
                 return;
             }
-            
+
             // Use XMLHttpRequest for better compatibility
             const xhr = new XMLHttpRequest();
             xhr.open('GET', '/api/intake/llm/status', true);
             xhr.setRequestHeader('Accept', 'application/json');
-            
-            xhr.onreadystatechange = function() {
+
+            xhr.onreadystatechange = function () {
                 if (xhr.readyState === 4) {
                     if (xhr.status === 200) {
                         try {
                             const data = JSON.parse(xhr.responseText);
                             console.log('📊 LLM status response:', data);
-                            
+
                             if (data.success) {
                                 const status = data.data;
                                 console.log('✅ LLM status data:', status);
-                                
+
                                 statusTextEl.textContent = status.enabled ? '활성화됨' : '비활성화됨';
                                 if (modelEl) modelEl.textContent = status.config.model || '-';
                                 if (availableEl) availableEl.textContent = status.available ? '✅ 사용 가능' : '❌ 사용 불가';
                                 if (toggleEl) toggleEl.checked = status.enabled;
-                                
+
                                 // Update status color
                                 statusTextEl.className = status.enabled && status.available ? 'text-green-600 font-medium' : 'text-red-600 font-medium';
-                                
+
                                 console.log('✅ LLM status UI updated successfully');
                             } else {
                                 console.error('❌ LLM status API failed:', data);
@@ -699,25 +849,25 @@
                     }
                 }
             };
-            
-            xhr.onerror = function() {
+
+            xhr.onerror = function () {
                 console.error('❌ Network error');
                 statusTextEl.textContent = '네트워크 오류';
                 statusTextEl.className = 'text-red-600 font-medium';
             };
-            
+
             xhr.send();
         }
 
         // LLM Toggle
-        document.getElementById('llmToggle').addEventListener('change', function(e) {
+        document.getElementById('llmToggle').addEventListener('change', function (e) {
             const enabled = e.target.checked;
-            
+
             const xhr = new XMLHttpRequest();
             xhr.open('POST', '/api/intake/llm/toggle', true);
             xhr.setRequestHeader('Content-Type', 'application/json');
-            
-            xhr.onreadystatechange = function() {
+
+            xhr.onreadystatechange = function () {
                 if (xhr.readyState === 4) {
                     if (xhr.status === 200) {
                         try {
@@ -739,29 +889,29 @@
                     }
                 }
             };
-            
-            xhr.onerror = function() {
+
+            xhr.onerror = function () {
                 e.target.checked = !enabled; // Revert toggle
                 alert('네트워크 오류가 발생했습니다.');
             };
-            
+
             xhr.send(JSON.stringify({ enabled: enabled }));
         });
 
         // LLM Test
-        document.getElementById('testLLM').addEventListener('click', function() {
+        document.getElementById('testLLM').addEventListener('click', function () {
             const text = document.getElementById('llmTestText').value.trim();
-            
+
             if (!text) {
                 alert('테스트할 텍스트를 입력해주세요.');
                 return;
             }
-            
+
             const xhr = new XMLHttpRequest();
             xhr.open('POST', '/api/intake/llm/test', true);
             xhr.setRequestHeader('Content-Type', 'application/json');
-            
-            xhr.onreadystatechange = function() {
+
+            xhr.onreadystatechange = function () {
                 if (xhr.readyState === 4) {
                     try {
                         const data = JSON.parse(xhr.responseText);
@@ -771,25 +921,25 @@
                     }
                 }
             };
-            
-            xhr.onerror = function() {
+
+            xhr.onerror = function () {
                 displayResult('llmTestResult', { error: 'Network error' }, true);
             };
-            
+
             xhr.send(JSON.stringify({ text: text }));
         });
 
         // Refresh LLM Status
         document.getElementById('refreshLLMStatus').addEventListener('click', loadLLMStatus);
-        
+
         // Check Current Status
-        document.getElementById('checkCurrentStatus').addEventListener('click', function() {
+        document.getElementById('checkCurrentStatus').addEventListener('click', function () {
             const statusText = document.getElementById('llmStatusText').textContent;
             alert('LLM Status: ' + statusText);
         });
-        
+
         // Manual Load Status
-        document.getElementById('manualLoadStatus').addEventListener('click', function() {
+        document.getElementById('manualLoadStatus').addEventListener('click', function () {
             loadLLMStatus();
             alert('LLM 상태 로드 함수를 수동으로 호출했습니다.');
         });
@@ -797,7 +947,7 @@
         // Load LLM status on page load
         console.log('🚀 Page loaded, loading LLM status...');
         console.log('🔍 Testing if script is running...');
-        
+
         // Test if DOM elements are accessible
         setTimeout(() => {
             const testEl = document.getElementById('llmStatusText');
@@ -809,9 +959,9 @@
                 testEl.style.color = 'blue';
             }
         }, 100);
-        
+
         loadLLMStatus();
-        
+
         // Also load status after a short delay in case of timing issues
         setTimeout(() => {
             console.log('🔄 Delayed LLM status load...');
@@ -819,19 +969,19 @@
         }, 1000);
 
         // Test Apartment Parsing
-        document.getElementById('testApartmentParsing').addEventListener('click', function() {
+        document.getElementById('testApartmentParsing').addEventListener('click', function () {
             const text = document.getElementById('llmTestText').value.trim();
-            
+
             if (!text) {
                 alert('테스트할 텍스트를 입력해주세요.');
                 return;
             }
-            
+
             const xhr = new XMLHttpRequest();
             xhr.open('POST', '/api/intake/llm/apartment', true);
             xhr.setRequestHeader('Content-Type', 'application/json');
-            
-            xhr.onreadystatechange = function() {
+
+            xhr.onreadystatechange = function () {
                 if (xhr.readyState === 4) {
                     try {
                         const data = JSON.parse(xhr.responseText);
@@ -841,67 +991,67 @@
                     }
                 }
             };
-            
-            xhr.onerror = function() {
+
+            xhr.onerror = function () {
                 displayResult('apartmentParsingResult', { error: 'Network error' }, true);
             };
-            
+
             xhr.send(JSON.stringify({ text: text }));
         });
         // Simplified LLM Analysis (removed complex async function that was causing syntax errors)
         if (document.getElementById('enableLLMAnalysis')) {
-            document.getElementById('enableLLMAnalysis').addEventListener('click', function() {
+            document.getElementById('enableLLMAnalysis').addEventListener('click', function () {
                 alert('LLM 분석 기능은 현재 단순화되었습니다. 개별 LLM 테스트 버튼을 사용해주세요.');
             });
         }
 
         // Test LLM Keywords
-        document.getElementById('testLLMKeywords').addEventListener('click', function() {
+        document.getElementById('testLLMKeywords').addEventListener('click', function () {
             console.log('🔍 Starting LLM keywords analysis...');
-            
+
             // Show loading message
             displayResult('llmKeywordsResult', { message: '키워드 분석 중... 잠시만 기다려주세요.' }, false);
-            
+
             // First get sample messages
             const xhr1 = new XMLHttpRequest();
             xhr1.open('GET', '/api/intake/messages?limit=50', true);
             xhr1.setRequestHeader('Accept', 'application/json');
-            
-            xhr1.onreadystatechange = function() {
+
+            xhr1.onreadystatechange = function () {
                 if (xhr1.readyState === 4) {
                     console.log('📡 Messages API response:', xhr1.status);
                     if (xhr1.status === 200) {
                         try {
                             const data = JSON.parse(xhr1.responseText);
                             console.log('📊 Messages data:', data);
-                            
+
                             if (!data.success) {
                                 displayResult('llmKeywordsResult', { error: '메시지 로드 실패: ' + data.error }, true);
                                 return;
                             }
 
                             // Extract both message content and apartment unit info
-                            const messagesWithUnits = data.data.map(function(msg) {
+                            const messagesWithUnits = data.data.map(function (msg) {
                                 const messageData = {
                                     content: msg.content || msg.maskedContent,
                                     apartmentUnit: msg.apartmentUnit
                                 };
                                 return messageData;
                             });
-                            
-                            const messages = messagesWithUnits.map(function(msg) { 
-                                return msg.content; 
+
+                            const messages = messagesWithUnits.map(function (msg) {
+                                return msg.content;
                             });
-                            
+
                             console.log('📝 Extracted messages:', messages.length, 'messages');
-                            console.log('🏢 Messages with apartment units:', messagesWithUnits.filter(function(msg) { return msg.apartmentUnit; }).length);
-                            
+                            console.log('🏢 Messages with apartment units:', messagesWithUnits.filter(function (msg) { return msg.apartmentUnit; }).length);
+
                             // Now send to LLM keywords endpoint
                             const xhr2 = new XMLHttpRequest();
                             xhr2.open('POST', '/api/intake/llm/keywords', true);
                             xhr2.setRequestHeader('Content-Type', 'application/json');
-                            
-                            xhr2.onreadystatechange = function() {
+
+                            xhr2.onreadystatechange = function () {
                                 if (xhr2.readyState === 4) {
                                     console.log('🤖 LLM Keywords API response:', xhr2.status);
                                     try {
@@ -914,19 +1064,19 @@
                                     }
                                 }
                             };
-                            
-                            xhr2.onerror = function() {
+
+                            xhr2.onerror = function () {
                                 displayResult('llmKeywordsResult', { error: 'Network error' }, true);
                             };
-                            
-                            const requestData = { 
+
+                            const requestData = {
                                 messages: messages,
-                                messagesWithUnits: messagesWithUnits 
+                                messagesWithUnits: messagesWithUnits
                             };
-                            
+
                             console.log('📤 Sending to LLM keywords API:', requestData);
                             xhr2.send(JSON.stringify(requestData));
-                            
+
                         } catch (parseError) {
                             displayResult('llmKeywordsResult', { error: 'Parse error: ' + parseError.message }, true);
                         }
@@ -935,14 +1085,14 @@
                     }
                 }
             };
-            
-            xhr1.onerror = function() {
+
+            xhr1.onerror = function () {
                 displayResult('llmKeywordsResult', { error: 'Network error' }, true);
             };
-            
+
             xhr1.send();
         });
-        
+
         // Voice Recording for Call Testing
         let recognition = null;
         let isRecording = false;
@@ -965,13 +1115,13 @@
                     document.getElementById('startRecording').disabled = true;
                     document.getElementById('stopRecording').disabled = false;
                     document.getElementById('recordingStatus').textContent = '🔴 녹음 중... (0초)';
-                    
+
                     // Start timer to show recording duration
                     recordingTimer = setInterval(() => {
                         if (isRecording) {
                             const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
                             document.getElementById('recordingStatus').textContent = `🔴 녹음 중... (${elapsed}초)`;
-                            
+
                             // Auto-stop after 15 seconds to prevent timeout
                             if (elapsed >= 15) {
                                 recognition.stop();
@@ -990,7 +1140,7 @@
             recognition.onresult = (event) => {
                 let finalTranscript = '';
                 let interimTranscript = '';
-                
+
                 for (let i = event.resultIndex; i < event.results.length; i++) {
                     const transcript = event.results[i][0].transcript;
                     if (event.results[i].isFinal) {
@@ -999,11 +1149,11 @@
                         interimTranscript += transcript;
                     }
                 }
-                
+
                 // Update textarea with final + interim results
                 const currentText = document.getElementById('callTranscript').value;
                 const newText = finalTranscript || interimTranscript;
-                
+
                 if (finalTranscript) {
                     document.getElementById('callTranscript').value = currentText + finalTranscript;
                 } else if (interimTranscript) {
@@ -1028,7 +1178,7 @@
                 isRecording = false;
                 document.getElementById('startRecording').disabled = false;
                 document.getElementById('stopRecording').disabled = true;
-                
+
                 if (recordingTimer) {
                     clearInterval(recordingTimer);
                     recordingTimer = null;
@@ -1041,8 +1191,605 @@
             document.getElementById('recordingStatus').textContent = '음성 인식이 지원되지 않는 브라우저입니다.';
         }
 
+        // AI Conversation Simulators
+        let currentConversation = null;
+        let conversationStep = 0;
+        let currentSMSConversation = null;
+        let smsConversationStep = 0;
+        let currentKakaoConversation = null;
+        let kakaoConversationStep = 0;
+        
+        const conversationFlows = {
+            noise: {
+                title: "소음 민원",
+                steps: [
+                    {
+                        question: "어떤 종류의 소음인가요?\n1️⃣ 층간소음\n2️⃣ 기계실 소음\n3️⃣ 집회/파티 소리\n4️⃣ 공사 소음\n5️⃣ 기타",
+                        options: ["층간소음", "기계실 소음", "집회/파티 소리", "공사 소음", "기타"]
+                    },
+                    {
+                        question: "소음 발생 위치를 알려주세요 (예: 윗집, 옆집, 아래층)",
+                        field: "location"
+                    },
+                    {
+                        question: "주로 언제 소음이 발생하나요?\n1️⃣ 새벽 (00-06시)\n2️⃣ 오전 (06-12시)\n3️⃣ 오후 (12-18시)\n4️⃣ 저녁 (18-24시)\n5️⃣ 하루종일",
+                        options: ["새벽", "오전", "오후", "저녁", "하루종일"]
+                    },
+                    {
+                        question: "소음 정도는 어떤가요?\n1️⃣ 약간 신경쓰임\n2️⃣ 생활에 지장\n3️⃣ 잠을 못잘 정도\n4️⃣ 매우 심각",
+                        options: ["약간 신경쓰임", "생활에 지장", "잠을 못잘 정도", "매우 심각"]
+                    }
+                ],
+                completion: "🔇 소음 담당자가 현장 확인 후 조치하겠습니다.\n📋 필요시 층간소음 측정을 진행할 수 있습니다.\n⏰ 처리 예상 시간: 1-2일"
+            },
+            facility: {
+                title: "시설 고장",
+                steps: [
+                    {
+                        question: "어떤 공용시설에 문제가 있나요?\n1️⃣ 엘리베이터\n2️⃣ 복도\n3️⃣ 주차장\n4️⃣ 기타",
+                        options: ["엘리베이터", "복도", "주차장", "기타"]
+                    },
+                    {
+                        question: "정확한 위치를 알려주세요 (예: 101동 앞, 지하1층 주차장)",
+                        field: "location"
+                    },
+                    {
+                        question: "어떤 문제인가요?\n1️⃣ 고장\n2️⃣ 파손\n3️⃣ 청소 필요\n4️⃣ 기타",
+                        options: ["고장", "파손", "청소 필요", "기타"]
+                    },
+                    {
+                        question: "언제부터 문제가 있었나요? (예: 오늘 아침부터, 3일 전부터)",
+                        field: "duration"
+                    }
+                ],
+                completion: "🔧 시설 담당자가 확인 후 수리 일정을 안내드리겠습니다.\n⏰ 예상 처리 시간: 1-3일\n📞 긴급한 경우 관리사무소(02-1234-5678)로 연락해 주세요."
+            },
+            parking: {
+                title: "주차 문제",
+                steps: [
+                    {
+                        question: "주차 관련 어떤 문제인가요?\n1️⃣ 불법 주차\n2️⃣ 방문차량 등록\n3️⃣ 전기차 충전\n4️⃣ 주차권 문의\n5️⃣ 기타",
+                        options: ["불법 주차", "방문차량 등록", "전기차 충전", "주차권 문의", "기타"]
+                    },
+                    {
+                        question: "정확한 위치를 알려주세요 (예: 지하1층 A구역, 101동 앞)",
+                        field: "location"
+                    },
+                    {
+                        question: "차량 번호를 알고 계신가요? (알고 있다면 알려주세요)",
+                        field: "vehicleNumber"
+                    }
+                ],
+                completion: "🚗 주차 관리 담당자가 확인 후 조치하겠습니다.\n⚠️ 불법 주차의 경우 경고장 발송 예정입니다.\n⏰ 처리 예상 시간: 당일 중"
+            },
+            emergency: {
+                title: "긴급상황",
+                steps: [
+                    {
+                        question: "어떤 긴급상황인가요?\n1️⃣ 정전\n2️⃣ 단수\n3️⃣ 급수 불량\n4️⃣ 난방/온수 불량\n5️⃣ 가스 누출\n6️⃣ 화재\n7️⃣ 기타",
+                        options: ["정전", "단수", "급수 불량", "난방/온수 불량", "가스 누출", "화재", "기타"]
+                    },
+                    {
+                        question: "영향 범위는 어떻게 되나요?\n1️⃣ 우리 집만\n2️⃣ 같은 층\n3️⃣ 같은 동\n4️⃣ 단지 전체\n5️⃣ 모름",
+                        options: ["우리 집만", "같은 층", "같은 동", "단지 전체", "모름"]
+                    },
+                    {
+                        question: "언제부터 문제가 시작되었나요? (예: 방금 전, 30분 전, 오늘 아침)",
+                        field: "startTime"
+                    }
+                ],
+                completion: "🚨 긴급상황으로 분류되어 즉시 담당자에게 전달됩니다.\n📞 추가 연락이 필요한 경우 관리사무소(02-1234-5678)로 연락해 주세요.\n⚡ 즉시 처리 예정"
+            }
+        };
+
+        // Generic message history function
+        function addMessageToHistory(sender, message, isUser = false, historyId = 'conversationHistory', channelStyle = 'default') {
+            const history = document.getElementById(historyId);
+            if (!history) return;
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `mb-3 ${isUser ? 'text-right' : 'text-left'}`;
+            
+            let bubbleClass = '';
+            let senderClass = '';
+            
+            if (channelStyle === 'sms') {
+                bubbleClass = isUser 
+                    ? 'bg-green-500 text-white' 
+                    : 'bg-gray-100 border border-gray-300 text-gray-800';
+                senderClass = isUser ? 'text-green-100' : 'text-gray-500';
+            } else if (channelStyle === 'kakao') {
+                bubbleClass = isUser 
+                    ? 'bg-yellow-400 text-gray-800' 
+                    : 'bg-white border border-yellow-300 text-gray-800';
+                senderClass = isUser ? 'text-yellow-800' : 'text-gray-500';
+            } else {
+                bubbleClass = isUser 
+                    ? 'bg-blue-500 text-white' 
+                    : 'bg-white border border-gray-200 text-gray-800';
+                senderClass = isUser ? 'text-blue-100' : 'text-gray-500';
+            }
+            
+            const bubble = document.createElement('div');
+            bubble.className = `inline-block max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${bubbleClass}`;
+            
+            const senderSpan = document.createElement('div');
+            senderSpan.className = `text-xs ${senderClass} mb-1`;
+            senderSpan.textContent = sender;
+            
+            const messageSpan = document.createElement('div');
+            messageSpan.className = 'text-sm whitespace-pre-line';
+            messageSpan.textContent = message;
+            
+            bubble.appendChild(senderSpan);
+            bubble.appendChild(messageSpan);
+            messageDiv.appendChild(bubble);
+            history.appendChild(messageDiv);
+            
+            // Scroll to bottom
+            history.scrollTop = history.scrollHeight;
+        }
+
+        // SMS Conversation Functions
+        function startSMSConversation(type) {
+            currentSMSConversation = conversationFlows[type];
+            smsConversationStep = 0;
+            
+            // Clear history
+            const history = document.getElementById('smsConversationHistory');
+            if (history) {
+                history.innerHTML = '';
+            }
+            
+            // Add initial message
+            addMessageToHistory('010-1234-5678', `${currentSMSConversation.title} 문의드립니다.`, true, 'smsConversationHistory', 'sms');
+            
+            setTimeout(() => {
+                addMessageToHistory('AI 비서', '📝 더 정확한 처리를 위해 몇 가지 질문드리겠습니다.', false, 'smsConversationHistory', 'sms');
+                setTimeout(() => {
+                    askNextSMSQuestion();
+                }, 1000);
+            }, 500);
+            
+            // Enable input
+            const userResponse = document.getElementById('smsUserResponse');
+            const sendResponse = document.getElementById('sendSMSResponse');
+            if (userResponse) {
+                userResponse.disabled = false;
+                userResponse.focus();
+            }
+            if (sendResponse) {
+                sendResponse.disabled = false;
+            }
+        }
+
+        function askNextSMSQuestion() {
+            if (!currentSMSConversation || smsConversationStep >= currentSMSConversation.steps.length) {
+                completeSMSConversation();
+                return;
+            }
+            
+            const step = currentSMSConversation.steps[smsConversationStep];
+            addMessageToHistory('AI 비서', step.question, false, 'smsConversationHistory', 'sms');
+        }
+
+        function processSMSUserResponse() {
+            const userInput = document.getElementById('smsUserResponse');
+            if (!userInput || !userInput.value.trim()) return;
+            
+            const inputValue = userInput.value.trim();
+            
+            // Add user message
+            addMessageToHistory('010-1234-5678', inputValue, true, 'smsConversationHistory', 'sms');
+            
+            // Clear input
+            userInput.value = '';
+            
+            // Move to next step
+            smsConversationStep++;
+            
+            setTimeout(() => {
+                askNextSMSQuestion();
+            }, 1000);
+        }
+
+        function completeSMSConversation() {
+            setTimeout(() => {
+                addMessageToHistory('AI 비서', '✅ 정보 수집이 완료되었습니다.', false, 'smsConversationHistory', 'sms');
+                setTimeout(() => {
+                    addMessageToHistory('AI 비서', currentSMSConversation.completion, false, 'smsConversationHistory', 'sms');
+                    
+                    // Disable input
+                    const userResponse = document.getElementById('smsUserResponse');
+                    const sendResponse = document.getElementById('sendSMSResponse');
+                    if (userResponse) userResponse.disabled = true;
+                    if (sendResponse) sendResponse.disabled = true;
+                    
+                    currentSMSConversation = null;
+                    smsConversationStep = 0;
+                }, 1000);
+            }, 500);
+        }
+
+        // KakaoTalk Conversation Functions
+        function startKakaoConversation(type) {
+            currentKakaoConversation = conversationFlows[type];
+            kakaoConversationStep = 0;
+            
+            // Clear history
+            const history = document.getElementById('kakaoConversationHistory');
+            if (history) {
+                history.innerHTML = '';
+            }
+            
+            // Add initial message
+            addMessageToHistory('사용자', `${currentKakaoConversation.title} 문의드립니다.`, true, 'kakaoConversationHistory', 'kakao');
+            
+            setTimeout(() => {
+                addMessageToHistory('AI 비서', '📝 더 정확한 처리를 위해 몇 가지 질문드리겠습니다.', false, 'kakaoConversationHistory', 'kakao');
+                setTimeout(() => {
+                    askNextKakaoQuestion();
+                }, 1000);
+            }, 500);
+            
+            // Enable input
+            const userResponse = document.getElementById('kakaoUserResponse');
+            const sendResponse = document.getElementById('sendKakaoResponse');
+            if (userResponse) {
+                userResponse.disabled = false;
+                userResponse.focus();
+            }
+            if (sendResponse) {
+                sendResponse.disabled = false;
+            }
+        }
+
+        function askNextKakaoQuestion() {
+            if (!currentKakaoConversation || kakaoConversationStep >= currentKakaoConversation.steps.length) {
+                completeKakaoConversation();
+                return;
+            }
+            
+            const step = currentKakaoConversation.steps[kakaoConversationStep];
+            addMessageToHistory('AI 비서', step.question, false, 'kakaoConversationHistory', 'kakao');
+            
+            // Add quick response buttons for KakaoTalk
+            if (step.options) {
+                setTimeout(() => {
+                    addKakaoQuickResponseButtons(step.options);
+                }, 500);
+            }
+        }
+
+        function addKakaoQuickResponseButtons(options) {
+            const history = document.getElementById('kakaoConversationHistory');
+            if (!history) return;
+            
+            const buttonContainer = document.createElement('div');
+            buttonContainer.className = 'mb-3 text-left';
+            buttonContainer.id = 'kakaoQuickButtons';
+            
+            const buttonsDiv = document.createElement('div');
+            buttonsDiv.className = 'flex flex-wrap gap-2 mt-2';
+            
+            options.forEach(option => {
+                const button = document.createElement('button');
+                button.className = 'bg-yellow-100 hover:bg-yellow-200 text-yellow-800 px-3 py-1 rounded-full text-sm border border-yellow-300';
+                button.textContent = option;
+                button.onclick = () => {
+                    const userResponse = document.getElementById('kakaoUserResponse');
+                    if (userResponse) {
+                        userResponse.value = option;
+                        processKakaoUserResponse();
+                    }
+                };
+                buttonsDiv.appendChild(button);
+            });
+            
+            buttonContainer.appendChild(buttonsDiv);
+            history.appendChild(buttonContainer);
+            history.scrollTop = history.scrollHeight;
+        }
+
+        function processKakaoUserResponse() {
+            const userInput = document.getElementById('kakaoUserResponse');
+            if (!userInput || !userInput.value.trim()) return;
+            
+            const inputValue = userInput.value.trim();
+            
+            // Remove quick buttons
+            const quickButtons = document.getElementById('kakaoQuickButtons');
+            if (quickButtons) {
+                quickButtons.remove();
+            }
+            
+            // Add user message
+            addMessageToHistory('사용자', inputValue, true, 'kakaoConversationHistory', 'kakao');
+            
+            // Clear input
+            userInput.value = '';
+            
+            // Move to next step
+            kakaoConversationStep++;
+            
+            setTimeout(() => {
+                askNextKakaoQuestion();
+            }, 1000);
+        }
+
+        function completeKakaoConversation() {
+            setTimeout(() => {
+                addMessageToHistory('AI 비서', '✅ 정보 수집이 완료되었습니다.', false, 'kakaoConversationHistory', 'kakao');
+                setTimeout(() => {
+                    addMessageToHistory('AI 비서', currentKakaoConversation.completion, false, 'kakaoConversationHistory', 'kakao');
+                    
+                    // Disable input
+                    const userResponse = document.getElementById('kakaoUserResponse');
+                    const sendResponse = document.getElementById('sendKakaoResponse');
+                    if (userResponse) userResponse.disabled = true;
+                    if (sendResponse) sendResponse.disabled = true;
+                    
+                    currentKakaoConversation = null;
+                    kakaoConversationStep = 0;
+                }, 1000);
+            }, 500);
+        }
+
+        function startConversation(type) {
+            currentConversation = conversationFlows[type];
+            conversationStep = 0;
+            
+            // Clear history
+            const history = document.getElementById('conversationHistory');
+            if (history) {
+                history.innerHTML = '';
+            }
+            
+            // Add initial message
+            addMessageToHistory('사용자', `${currentConversation.title} 문의드립니다.`, true);
+            
+            setTimeout(() => {
+                addMessageToHistory('AI 비서', '📝 더 정확한 처리를 위해 몇 가지 질문드리겠습니다.');
+                setTimeout(() => {
+                    askNextQuestion();
+                }, 1000);
+            }, 500);
+            
+            // Enable input
+            const userResponse = document.getElementById('userResponse');
+            const sendResponse = document.getElementById('sendResponse');
+            if (userResponse) {
+                userResponse.disabled = false;
+                userResponse.focus();
+            }
+            if (sendResponse) {
+                sendResponse.disabled = false;
+            }
+        }
+
+        function askNextQuestion() {
+            if (!currentConversation || conversationStep >= currentConversation.steps.length) {
+                completeConversation();
+                return;
+            }
+            
+            const step = currentConversation.steps[conversationStep];
+            addMessageToHistory('AI 비서', step.question);
+            
+            // Add quick response buttons if options exist
+            if (step.options) {
+                setTimeout(() => {
+                    addQuickResponseButtons(step.options);
+                }, 500);
+            }
+        }
+
+        function addQuickResponseButtons(options) {
+            const history = document.getElementById('conversationHistory');
+            if (!history) return;
+            
+            const buttonContainer = document.createElement('div');
+            buttonContainer.className = 'mb-3 text-left';
+            buttonContainer.id = 'quickButtons';
+            
+            const buttonsDiv = document.createElement('div');
+            buttonsDiv.className = 'flex flex-wrap gap-2 mt-2';
+            
+            options.forEach(option => {
+                const button = document.createElement('button');
+                button.className = 'bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm border';
+                button.textContent = option;
+                button.onclick = () => {
+                    const userResponse = document.getElementById('userResponse');
+                    if (userResponse) {
+                        userResponse.value = option;
+                        processUserResponse();
+                    }
+                };
+                buttonsDiv.appendChild(button);
+            });
+            
+            buttonContainer.appendChild(buttonsDiv);
+            history.appendChild(buttonContainer);
+            history.scrollTop = history.scrollHeight;
+        }
+
+        function processUserResponse() {
+            const userInput = document.getElementById('userResponse');
+            if (!userInput || !userInput.value.trim()) return;
+            
+            const inputValue = userInput.value.trim();
+            
+            // Remove quick buttons
+            const quickButtons = document.getElementById('quickButtons');
+            if (quickButtons) {
+                quickButtons.remove();
+            }
+            
+            // Add user message
+            addMessageToHistory('사용자', inputValue, true);
+            
+            // Clear input
+            userInput.value = '';
+            
+            // Move to next step
+            conversationStep++;
+            
+            setTimeout(() => {
+                askNextQuestion();
+            }, 1000);
+        }
+
+        function completeConversation() {
+            setTimeout(() => {
+                addMessageToHistory('AI 비서', '✅ 정보 수집이 완료되었습니다.');
+                setTimeout(() => {
+                    addMessageToHistory('AI 비서', currentConversation.completion);
+                    
+                    // Disable input
+                    const userResponse = document.getElementById('userResponse');
+                    const sendResponse = document.getElementById('sendResponse');
+                    if (userResponse) userResponse.disabled = true;
+                    if (sendResponse) sendResponse.disabled = true;
+                    
+                    currentConversation = null;
+                    conversationStep = 0;
+                }, 1000);
+            }, 500);
+        }
+
+        // Event listeners for all conversation simulators
+        document.addEventListener('DOMContentLoaded', function() {
+            // Main AI Conversation Simulator
+            const startNoiseBtn = document.getElementById('startNoiseConversation');
+            const startFacilityBtn = document.getElementById('startFacilityConversation');
+            const startParkingBtn = document.getElementById('startParkingConversation');
+            const startEmergencyBtn = document.getElementById('startEmergencyConversation');
+            const conversationForm = document.getElementById('conversationResponseForm');
+            const clearBtn = document.getElementById('clearConversation');
+
+            if (startNoiseBtn) startNoiseBtn.addEventListener('click', () => startConversation('noise'));
+            if (startFacilityBtn) startFacilityBtn.addEventListener('click', () => startConversation('facility'));
+            if (startParkingBtn) startParkingBtn.addEventListener('click', () => startConversation('parking'));
+            if (startEmergencyBtn) startEmergencyBtn.addEventListener('click', () => startConversation('emergency'));
+
+            if (conversationForm) {
+                conversationForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    processUserResponse();
+                });
+            }
+
+            if (clearBtn) {
+                clearBtn.addEventListener('click', function() {
+                    const history = document.getElementById('conversationHistory');
+                    const userResponse = document.getElementById('userResponse');
+                    const sendResponse = document.getElementById('sendResponse');
+                    
+                    if (history) {
+                        history.innerHTML = '<div class="text-sm text-gray-500 text-center">대화 기록이 여기에 표시됩니다</div>';
+                    }
+                    if (userResponse) {
+                        userResponse.disabled = true;
+                        userResponse.value = '';
+                    }
+                    if (sendResponse) {
+                        sendResponse.disabled = true;
+                    }
+                    
+                    currentConversation = null;
+                    conversationStep = 0;
+                });
+            }
+
+            // SMS Conversation Simulator
+            const startSMSNoiseBtn = document.getElementById('startSMSNoise');
+            const startSMSFacilityBtn = document.getElementById('startSMSFacility');
+            const startSMSParkingBtn = document.getElementById('startSMSParking');
+            const startSMSEmergencyBtn = document.getElementById('startSMSEmergency');
+            const smsConversationForm = document.getElementById('smsConversationForm');
+            const clearSMSBtn = document.getElementById('clearSMSConversation');
+
+            if (startSMSNoiseBtn) startSMSNoiseBtn.addEventListener('click', () => startSMSConversation('noise'));
+            if (startSMSFacilityBtn) startSMSFacilityBtn.addEventListener('click', () => startSMSConversation('facility'));
+            if (startSMSParkingBtn) startSMSParkingBtn.addEventListener('click', () => startSMSConversation('parking'));
+            if (startSMSEmergencyBtn) startSMSEmergencyBtn.addEventListener('click', () => startSMSConversation('emergency'));
+
+            if (smsConversationForm) {
+                smsConversationForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    processSMSUserResponse();
+                });
+            }
+
+            if (clearSMSBtn) {
+                clearSMSBtn.addEventListener('click', function() {
+                    const history = document.getElementById('smsConversationHistory');
+                    const userResponse = document.getElementById('smsUserResponse');
+                    const sendResponse = document.getElementById('sendSMSResponse');
+                    
+                    if (history) {
+                        history.innerHTML = '<div class="text-sm text-gray-500 text-center">SMS 대화 기록이 여기에 표시됩니다</div>';
+                    }
+                    if (userResponse) {
+                        userResponse.disabled = true;
+                        userResponse.value = '';
+                    }
+                    if (sendResponse) {
+                        sendResponse.disabled = true;
+                    }
+                    
+                    currentSMSConversation = null;
+                    smsConversationStep = 0;
+                });
+            }
+
+            // KakaoTalk Conversation Simulator
+            const startKakaoNoiseBtn = document.getElementById('startKakaoNoise');
+            const startKakaoFacilityBtn = document.getElementById('startKakaoFacility');
+            const startKakaoParkingBtn = document.getElementById('startKakaoParking');
+            const startKakaoEmergencyBtn = document.getElementById('startKakaoEmergency');
+            const kakaoConversationForm = document.getElementById('kakaoConversationForm');
+            const clearKakaoBtn = document.getElementById('clearKakaoConversation');
+
+            if (startKakaoNoiseBtn) startKakaoNoiseBtn.addEventListener('click', () => startKakaoConversation('noise'));
+            if (startKakaoFacilityBtn) startKakaoFacilityBtn.addEventListener('click', () => startKakaoConversation('facility'));
+            if (startKakaoParkingBtn) startKakaoParkingBtn.addEventListener('click', () => startKakaoConversation('parking'));
+            if (startKakaoEmergencyBtn) startKakaoEmergencyBtn.addEventListener('click', () => startKakaoConversation('emergency'));
+
+            if (kakaoConversationForm) {
+                kakaoConversationForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    processKakaoUserResponse();
+                });
+            }
+
+            if (clearKakaoBtn) {
+                clearKakaoBtn.addEventListener('click', function() {
+                    const history = document.getElementById('kakaoConversationHistory');
+                    const userResponse = document.getElementById('kakaoUserResponse');
+                    const sendResponse = document.getElementById('sendKakaoResponse');
+                    
+                    if (history) {
+                        history.innerHTML = '<div class="text-sm text-gray-500 text-center">카카오톡 대화 기록이 여기에 표시됩니다</div>';
+                    }
+                    if (userResponse) {
+                        userResponse.disabled = true;
+                        userResponse.value = '';
+                    }
+                    if (sendResponse) {
+                        sendResponse.disabled = true;
+                    }
+                    
+                    currentKakaoConversation = null;
+                    kakaoConversationStep = 0;
+                });
+            }
+        });
+
         // Script loaded successfully
         console.log('✅ JavaScript loaded successfully - no syntax errors');
     </script>
 </body>
+
 </html>
