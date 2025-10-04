@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Secretary - 티켓 상세</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="gradient-bg shadow-lg">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="/" class="text-white text-xl font-bold">AI Secretary</a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/" class="text-white hover:text-gray-200 px-3 py-2 rounded-md">홈</a>
+                    <a href="/dashboard.html" class="text-white hover:text-gray-200 px-3 py-2 rounded-md">대시보드</a>
+                    <a href="/reports.html" class="text-white hover:text-gray-200 px-3 py-2 rounded-md">리포트</a>
+                    <a href="/workload.html" class="text-white hover:text-gray-200 px-3 py-2 rounded-md">인력 관리</a>
+                    <a href="/test.html" class="text-white hover:text-gray-200 px-3 py-2 rounded-md">테스트</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        <!-- Loading State -->
+        <div id="loadingState" class="text-center py-12">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+            <p class="mt-4 text-gray-600">티켓 정보를 불러오는 중...</p>
+        </div>
+
+        <!-- Error State -->
+        <div id="errorState" class="hidden text-center py-12">
+            <div class="text-red-600 text-6xl mb-4">⚠️</div>
+            <h2 class="text-2xl font-bold text-gray-900 mb-2">티켓을 찾을 수 없습니다</h2>
+            <p class="text-gray-600 mb-4">요청하신 티켓이 존재하지 않거나 삭제되었습니다.</p>
+            <a href="/dashboard" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">
+                대시보드로 돌아가기
+            </a>
+        </div>
+
+        <!-- Ticket Detail Content -->
+        <div id="ticketContent" class="hidden">
+            <!-- Header -->
+            <div class="bg-white shadow rounded-lg mb-6">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h1 id="ticketTitle" class="text-2xl font-bold text-gray-900"></h1>
+                            <p class="text-sm text-gray-500 mt-1">
+                                티켓 번호: <span id="ticketNumber" class="font-medium"></span>
+                            </p>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <span id="priorityBadge" class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium"></span>
+                            <span id="statusBadge" class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium"></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Ticket Info Grid -->
+                <div class="px-6 py-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">카테고리</dt>
+                            <dd id="ticketCategory" class="mt-1 text-sm text-gray-900"></dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">신고자</dt>
+                            <dd id="ticketReporter" class="mt-1 text-sm text-gray-900"></dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">생성일시</dt>
+                            <dd id="ticketCreated" class="mt-1 text-sm text-gray-900"></dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">SLA 마감</dt>
+                            <dd id="ticketSLA" class="mt-1 text-sm"></dd>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Assignee Management -->
+            <div class="bg-white shadow rounded-lg mb-6">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-lg font-medium text-gray-900">👤 담당자 관리</h2>
+                </div>
+                <div class="px-6 py-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500 mb-2">현재 담당자</dt>
+                            <div id="currentAssignee" class="flex items-center space-x-3 p-3 bg-gray-50 rounded-md">
+                                <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-medium">
+                                    <span id="assigneeInitial">-</span>
+                                </div>
+                                <div>
+                                    <div id="assigneeName" class="font-medium text-gray-900">미할당</div>
+                                    <div id="assigneeRole" class="text-sm text-gray-500">-</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500 mb-2">담당자 변경</dt>
+                            <div class="space-y-3">
+                                <select id="assigneeSelect" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                                    <option value="">담당자를 선택하세요</option>
+                                </select>
+                                <button id="updateAssigneeBtn" class="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                                    담당자 변경
+                                </button>
+                                <div id="assigneeUpdateResult" class="hidden"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div class="bg-white shadow rounded-lg mb-6">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-lg font-medium text-gray-900">상세 내용</h2>
+                </div>
+                <div class="px-6 py-4">
+                    <div id="ticketDescription" class="prose max-w-none text-gray-700 whitespace-pre-wrap"></div>
+                </div>
+            </div>
+
+            <!-- Status Management -->
+            <div class="bg-white shadow rounded-lg mb-6">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-lg font-medium text-gray-900">상태 관리</h2>
+                </div>
+                <div class="px-6 py-4">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="flex items-center">
+                            <input type="radio" id="statusOpen" name="ticketStatus" value="open" class="mr-2">
+                            <label for="statusOpen" class="text-sm text-gray-700">열림</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="radio" id="statusInProgress" name="ticketStatus" value="in_progress" class="mr-2">
+                            <label for="statusInProgress" class="text-sm text-gray-700">진행중</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="radio" id="statusResolved" name="ticketStatus" value="resolved" class="mr-2">
+                            <label for="statusResolved" class="text-sm text-gray-700">해결됨</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="radio" id="statusClosed" name="ticketStatus" value="closed" class="mr-2">
+                            <label for="statusClosed" class="text-sm text-gray-700">닫힘</label>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <button id="updateStatusBtn" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">
+                            상태 업데이트
+                        </button>
+                        <div id="statusUpdateResult" class="mt-2 hidden"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Related Message -->
+            <div class="bg-white shadow rounded-lg mb-6">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-lg font-medium text-gray-900">관련 접수 메시지</h2>
+                </div>
+                <div class="px-6 py-4">
+                    <div id="relatedMessage" class="space-y-3">
+                        <div class="flex items-center space-x-2">
+                            <span id="messageChannel" class="text-2xl"></span>
+                            <span id="messageChannelText" class="text-sm font-medium text-gray-900"></span>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">원본 내용</dt>
+                            <dd id="messageContent" class="mt-1 text-sm text-gray-900 bg-gray-50 p-3 rounded-md whitespace-pre-wrap"></dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">마스킹된 내용</dt>
+                            <dd id="messageMasked" class="mt-1 text-sm text-gray-900 bg-gray-50 p-3 rounded-md whitespace-pre-wrap"></dd>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex justify-between">
+                <a href="/dashboard" class="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700">
+                    ← 대시보드로 돌아가기
+                </a>
+                <div class="space-x-2">
+                    <button id="refreshBtn" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                        새로고침
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get ticket ID from URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const ticketId = urlParams.get('id');
+
+        if (!ticketId) {
+            showError();
+        } else {
+            loadTicketDetail(ticketId);
+        }
+
+        async function loadTicketDetail(ticketId) {
+            try {
+                // Load ticket details
+                const ticketResponse = await fetch(`/api/tickets/${ticketId}`);
+                if (!ticketResponse.ok) {
+                    throw new Error('Ticket not found');
+                }
+                const ticketData = await ticketResponse.json();
+                
+                if (!ticketData.success) {
+                    throw new Error('Failed to load ticket');
+                }
+
+                const ticket = ticketData.data;
+
+                // Load related message
+                const messageResponse = await fetch(`/api/intake/messages/${ticket.intakeMessageId}`);
+                let message = null;
+                if (messageResponse.ok) {
+                    const messageData = await messageResponse.json();
+                    if (messageData.success) {
+                        message = messageData.data;
+                    }
+                }
+
+                displayTicketDetail(ticket, message);
+                
+            } catch (error) {
+                console.error('Error loading ticket:', error);
+                showError();
+            }
+        }
+
+        function displayTicketDetail(ticket, message) {
+            // Hide loading state
+            document.getElementById('loadingState').classList.add('hidden');
+            document.getElementById('ticketContent').classList.remove('hidden');
+
+            // Basic info
+            document.getElementById('ticketTitle').textContent = ticket.title;
+            document.getElementById('ticketNumber').textContent = ticket.number;
+            document.getElementById('ticketDescription').textContent = ticket.description;
+
+            // Categories and labels
+            const categoryLabels = {
+                'maintenance': '시설관리',
+                'noise': '소음',
+                'parking': '주차',
+                'billing': '관리비',
+                'security': '보안',
+                'emergency': '응급',
+                'complaint': '민원',
+                'inquiry': '문의'
+            };
+
+            document.getElementById('ticketCategory').textContent = categoryLabels[ticket.category] || ticket.category;
+            document.getElementById('ticketReporter').textContent = ticket.reporterId;
+            document.getElementById('ticketCreated').textContent = new Date(ticket.createdAt).toLocaleString('ko-KR');
+
+            // SLA deadline
+            const slaElement = document.getElementById('ticketSLA');
+            const slaDeadline = new Date(ticket.slaDeadline);
+            const now = new Date();
+            const isOverdue = now > slaDeadline;
+            
+            slaElement.textContent = slaDeadline.toLocaleString('ko-KR');
+            slaElement.className = `mt-1 text-sm ${isOverdue ? 'text-red-600 font-medium' : 'text-gray-900'}`;
+            if (isOverdue) {
+                slaElement.textContent += ' (지연)';
+            }
+
+            // Priority badge
+            const priorityColors = {
+                'urgent': 'bg-red-100 text-red-800',
+                'high': 'bg-orange-100 text-orange-800',
+                'medium': 'bg-yellow-100 text-yellow-800',
+                'low': 'bg-green-100 text-green-800'
+            };
+            const priorityBadge = document.getElementById('priorityBadge');
+            priorityBadge.textContent = ticket.priority;
+            priorityBadge.className = `inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${priorityColors[ticket.priority] || 'bg-gray-100 text-gray-800'}`;
+
+            // Status badge
+            const statusColors = {
+                'open': 'bg-blue-100 text-blue-800',
+                'in_progress': 'bg-purple-100 text-purple-800',
+                'pending': 'bg-yellow-100 text-yellow-800',
+                'resolved': 'bg-green-100 text-green-800',
+                'closed': 'bg-gray-100 text-gray-800'
+            };
+            const statusLabels = {
+                'open': '열림',
+                'in_progress': '진행중',
+                'pending': '대기',
+                'resolved': '해결됨',
+                'closed': '닫힘'
+            };
+            const statusBadge = document.getElementById('statusBadge');
+            statusBadge.textContent = statusLabels[ticket.status] || ticket.status;
+            statusBadge.className = `inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${statusColors[ticket.status] || 'bg-gray-100 text-gray-800'}`;
+
+            // Set current status in radio buttons
+            const statusRadio = document.querySelector(`input[name="ticketStatus"][value="${ticket.status}"]`);
+            if (statusRadio) {
+                statusRadio.checked = true;
+            }
+
+            // Related message
+            if (message) {
+                const channelEmojis = {
+                    'sms': '📱',
+                    'email': '📧',
+                    'web': '🌐',
+                    'call': '📞'
+                };
+                const channelLabels = {
+                    'sms': 'SMS',
+                    'email': '이메일',
+                    'web': '웹폼',
+                    'call': '통화'
+                };
+
+                document.getElementById('messageChannel').textContent = channelEmojis[message.channel] || '📝';
+                document.getElementById('messageChannelText').textContent = channelLabels[message.channel] || message.channel;
+                document.getElementById('messageContent').textContent = message.content;
+                document.getElementById('messageMasked').textContent = message.maskedContent;
+            }
+
+            // Load and display assignee information
+            loadAssigneeInfo(ticket.assigneeId);
+        }
+
+        async function loadAssigneeInfo(assigneeId) {
+            try {
+                // Load staff list for dropdown
+                const staffResponse = await fetch('/api/tickets/staff');
+                if (staffResponse.ok) {
+                    const staffData = await staffResponse.json();
+                    if (staffData.success) {
+                        populateAssigneeDropdown(staffData.data, assigneeId);
+                        displayCurrentAssignee(staffData.data, assigneeId);
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading assignee info:', error);
+            }
+        }
+
+        function populateAssigneeDropdown(staffList, currentAssigneeId) {
+            const select = document.getElementById('assigneeSelect');
+            select.innerHTML = '<option value="">담당자를 선택하세요</option>';
+            
+            staffList.forEach(staff => {
+                const option = document.createElement('option');
+                option.value = staff.id;
+                option.textContent = `${staff.name} (${staff.role})`;
+                if (staff.id === currentAssigneeId) {
+                    option.selected = true;
+                }
+                select.appendChild(option);
+            });
+        }
+
+        function displayCurrentAssignee(staffList, assigneeId) {
+            const assignee = staffList.find(staff => staff.id === assigneeId);
+            
+            if (assignee) {
+                document.getElementById('assigneeInitial').textContent = assignee.name.charAt(0);
+                document.getElementById('assigneeName').textContent = assignee.name;
+                document.getElementById('assigneeRole').textContent = assignee.role;
+            } else {
+                document.getElementById('assigneeInitial').textContent = '?';
+                document.getElementById('assigneeName').textContent = '미할당';
+                document.getElementById('assigneeRole').textContent = '담당자가 지정되지 않았습니다';
+            }
+        }
+
+        function showError() {
+            document.getElementById('loadingState').classList.add('hidden');
+            document.getElementById('errorState').classList.remove('hidden');
+        }
+
+        // Status update functionality
+        document.getElementById('updateStatusBtn').addEventListener('click', async () => {
+            const selectedStatus = document.querySelector('input[name="ticketStatus"]:checked')?.value;
+            if (!selectedStatus) {
+                alert('상태를 선택해주세요.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/tickets/${ticketId}/status`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: selectedStatus })
+                });
+
+                const result = await response.json();
+                const resultDiv = document.getElementById('statusUpdateResult');
+                
+                if (response.ok && result.success) {
+                    resultDiv.className = 'mt-2 p-3 bg-green-50 border border-green-200 rounded-md';
+                    resultDiv.innerHTML = '<p class="text-sm text-green-800">상태가 성공적으로 업데이트되었습니다.</p>';
+                    
+                    // Refresh the page after a short delay
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500);
+                } else {
+                    resultDiv.className = 'mt-2 p-3 bg-red-50 border border-red-200 rounded-md';
+                    resultDiv.innerHTML = '<p class="text-sm text-red-800">상태 업데이트에 실패했습니다.</p>';
+                }
+                
+                resultDiv.classList.remove('hidden');
+            } catch (error) {
+                console.error('Error updating status:', error);
+                alert('상태 업데이트 중 오류가 발생했습니다.');
+            }
+        });
+
+        // Assignee update functionality
+        document.getElementById('updateAssigneeBtn').addEventListener('click', async () => {
+            const selectedAssigneeId = document.getElementById('assigneeSelect').value;
+            if (!selectedAssigneeId) {
+                alert('담당자를 선택해주세요.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/tickets/${ticketId}/reassign`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ assigneeId: selectedAssigneeId })
+                });
+
+                const result = await response.json();
+                const resultDiv = document.getElementById('assigneeUpdateResult');
+                
+                if (response.ok && result.success) {
+                    resultDiv.className = 'p-3 bg-green-50 border border-green-200 rounded-md';
+                    resultDiv.innerHTML = '<p class="text-sm text-green-800">담당자가 성공적으로 변경되었습니다.</p>';
+                    
+                    // Refresh assignee display
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500);
+                } else {
+                    resultDiv.className = 'p-3 bg-red-50 border border-red-200 rounded-md';
+                    resultDiv.innerHTML = '<p class="text-sm text-red-800">담당자 변경에 실패했습니다.</p>';
+                }
+                
+                resultDiv.classList.remove('hidden');
+            } catch (error) {
+                console.error('Error updating assignee:', error);
+                alert('담당자 변경 중 오류가 발생했습니다.');
+            }
+        });
+
+        // Refresh button
+        document.getElementById('refreshBtn').addEventListener('click', () => {
+            location.reload();
+        });
+    </script>
+</body>
+</html>

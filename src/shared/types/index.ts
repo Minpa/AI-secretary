@@ -82,6 +82,7 @@ export enum MessageClassification {
   // 공용 공간 및 시설 관련
   COMMON_FACILITY = 'common_facility',           // 복도·주차장·엘리베이터 등 공용시설 고장 또는 파손
   ACCESS_CONTROL = 'access_control',             // 공동현관 비밀번호 변경 및 출입 통제
+  SECURITY = 'security',                         // 보안 관련 문의
   LANDSCAPING = 'landscaping',                   // 정원, 놀이터, 운동시설, 쓰레기장 등 청결, 환경, 조경 관리
   LIGHTING = 'lighting',                         // 공용 전기·조명 등 계절별 점등 시간, 소등·점검
   

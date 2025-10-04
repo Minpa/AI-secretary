@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Secretary - 인력 관리</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="gradient-bg shadow-lg">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="/" class="text-white text-xl font-bold">AI Secretary</a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/" class="text-white hover:text-gray-200 px-3 py-2 rounded-md">홈</a>
+                    <a href="/dashboard.html" class="text-white hover:text-gray-200 px-3 py-2 rounded-md">대시보드</a>
+                    <a href="/reports.html" class="text-white hover:text-gray-200 px-3 py-2 rounded-md">리포트</a>
+                    <a href="/workload.html" class="text-white bg-blue-700 px-3 py-2 rounded-md">인력 관리</a>
+                    <a href="/test.html" class="text-white hover:text-gray-200 px-3 py-2 rounded-md">테스트</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <h2 class="text-3xl font-bold text-gray-900">👥 인력 관리</h2>
+            <p class="mt-2 text-gray-600">직원 관리 및 업무 분담 현황을 확인하세요</p>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loadingState" class="text-center py-12">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <p class="mt-2 text-gray-600">업무 분담 현황을 불러오는 중...</p>
+        </div>
+
+        <!-- Workload Overview -->
+        <div id="workloadOverview" class="hidden mb-8">
+            <div class="bg-white shadow rounded-lg p-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">📊 업무량 요약</h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <div class="text-2xl font-bold text-blue-600" id="totalStaff">-</div>
+                        <div class="text-sm text-blue-600">총 직원 수</div>
+                    </div>
+                    <div class="bg-green-50 p-4 rounded-lg">
+                        <div class="text-2xl font-bold text-green-600" id="totalTickets">-</div>
+                        <div class="text-sm text-green-600">총 티켓 수</div>
+                    </div>
+                    <div class="bg-yellow-50 p-4 rounded-lg">
+                        <div class="text-2xl font-bold text-yellow-600" id="avgTicketsPerStaff">-</div>
+                        <div class="text-sm text-yellow-600">평균 티켓/직원</div>
+                    </div>
+                    <div class="bg-red-50 p-4 rounded-lg">
+                        <div class="text-2xl font-bold text-red-600" id="overloadedStaff">-</div>
+                        <div class="text-sm text-red-600">과부하 직원 수</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Staff Workload Cards -->
+        <div id="staffWorkload" class="hidden">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">👤 직원별 업무 현황</h3>
+            <div id="staffCards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Staff cards will be populated here -->
+            </div>
+        </div>
+
+        <!-- Staff Management -->
+        <div id="staffManagement" class="hidden mt-8">
+            <div class="bg-white shadow rounded-lg p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg font-medium text-gray-900">👤 직원 관리</h3>
+                    <button id="addStaffBtn" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">
+                        + 직원 추가
+                    </button>
+                </div>
+                
+                <!-- Staff Management Table -->
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">이름</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">역할</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">전문분야</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">할당된 티켓</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">작업</th>
+                            </tr>
+                        </thead>
+                        <tbody id="staffTableBody" class="bg-white divide-y divide-gray-200">
+                            <!-- Staff rows will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Assignment Management -->
+        <div id="assignmentManagement" class="hidden mt-8">
+            <div class="bg-white shadow rounded-lg p-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">🔄 티켓 재할당</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">티켓 선택</label>
+                        <select id="ticketSelect" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                            <option value="">티켓을 선택하세요</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">새 담당자</label>
+                        <select id="assigneeSelect" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                            <option value="">담당자를 선택하세요</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <button id="reassignBtn" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:bg-gray-400">
+                        재할당하기
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Error State -->
+        <div id="errorState" class="hidden text-center py-12">
+            <div class="text-red-600 text-4xl mb-4">⚠️</div>
+            <h3 class="text-lg font-bold text-gray-900 mb-2">데이터를 불러올 수 없습니다</h3>
+            <p class="text-gray-600 mb-4" id="errorMessage">서버 연결에 문제가 있습니다.</p>
+            <button id="retryBtn" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                다시 시도
+            </button>
+        </div>
+    </div>
+
+    <!-- Staff Management Modal -->
+    <div id="staffModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <h3 class="text-lg font-medium text-gray-900 mb-4" id="staffModalTitle">직원 추가</h3>
+                <form id="staffForm">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">이름</label>
+                        <input type="text" id="staffName" class="w-full px-3 py-2 border border-gray-300 rounded-md" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">역할</label>
+                        <input type="text" id="staffRole" class="w-full px-3 py-2 border border-gray-300 rounded-md" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">전문분야 (쉼표로 구분)</label>
+                        <input type="text" id="staffSpecialties" class="w-full px-3 py-2 border border-gray-300 rounded-md" 
+                               placeholder="maintenance, facility, billing" required>
+                    </div>
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" id="cancelStaffBtn" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400">
+                            취소
+                        </button>
+                        <button type="submit" id="saveStaffBtn" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                            저장
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .workload-bar {
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .workload-segment {
+            height: 100%;
+            display: inline-block;
+        }
+    </style>
+
+    <script>
+        let workloadData = [];
+        let allTickets = [];
+        let allStaff = [];
+
+        async function loadWorkloadData() {
+            try {
+                showLoading();
+                
+                // Load workload analytics
+                const workloadResponse = await fetch('/api/tickets/workload/analytics');
+                const workloadResult = await workloadResponse.json();
+                
+                if (!workloadResult.success) {
+                    throw new Error(workloadResult.message || 'Failed to load workload data');
+                }
+                
+                workloadData = workloadResult.data;
+                
+                // Load all tickets for reassignment
+                const ticketsResponse = await fetch('/api/tickets?limit=1000');
+                const ticketsResult = await ticketsResponse.json();
+                
+                if (ticketsResult.success) {
+                    allTickets = ticketsResult.data;
+                }
+                
+                // Load staff list
+                const staffResponse = await fetch('/api/tickets/staff');
+                const staffResult = await staffResponse.json();
+                
+                if (staffResult.success) {
+                    allStaff = staffResult.data;
+                }
+                
+                displayWorkloadData();
+                setupAssignmentManagement();
+                hideLoading();
+                
+            } catch (error) {
+                console.error('Error loading workload data:', error);
+                showError(error.message);
+            }
+        }
+
+        function showLoading() {
+            document.getElementById('loadingState').classList.remove('hidden');
+            document.getElementById('workloadOverview').classList.add('hidden');
+            document.getElementById('staffWorkload').classList.add('hidden');
+            document.getElementById('assignmentManagement').classList.add('hidden');
+            document.getElementById('errorState').classList.add('hidden');
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingState').classList.add('hidden');
+            document.getElementById('workloadOverview').classList.remove('hidden');
+            document.getElementById('staffWorkload').classList.remove('hidden');
+            document.getElementById('staffManagement').classList.remove('hidden');
+            document.getElementById('assignmentManagement').classList.remove('hidden');
+        }
+
+        function showError(message) {
+            document.getElementById('loadingState').classList.add('hidden');
+            document.getElementById('workloadOverview').classList.add('hidden');
+            document.getElementById('staffWorkload').classList.add('hidden');
+            document.getElementById('staffManagement').classList.add('hidden');
+            document.getElementById('assignmentManagement').classList.add('hidden');
+            document.getElementById('errorState').classList.remove('hidden');
+            document.getElementById('errorMessage').textContent = message;
+        }
+
+        function displayWorkloadData() {
+            // Update overview stats
+            const totalStaff = workloadData.length;
+            const totalTickets = workloadData.reduce((sum, staff) => sum + staff.totalTickets, 0);
+            const avgTicketsPerStaff = totalStaff > 0 ? Math.round(totalTickets / totalStaff) : 0;
+            const overloadedStaff = workloadData.filter(staff => staff.totalTickets > avgTicketsPerStaff * 1.5).length;
+
+            document.getElementById('totalStaff').textContent = totalStaff;
+            document.getElementById('totalTickets').textContent = totalTickets;
+            document.getElementById('avgTicketsPerStaff').textContent = avgTicketsPerStaff;
+            document.getElementById('overloadedStaff').textContent = overloadedStaff;
+
+            // Display staff cards
+            const staffCardsContainer = document.getElementById('staffCards');
+            staffCardsContainer.innerHTML = '';
+
+            workloadData.forEach(staff => {
+                const card = createStaffCard(staff, avgTicketsPerStaff);
+                staffCardsContainer.appendChild(card);
+            });
+            
+            // Display staff management table
+            displayStaffManagement();
+        }
+
+        function createStaffCard(staff, avgTickets) {
+            const isOverloaded = staff.totalTickets > avgTickets * 1.5;
+            const isUnderloaded = staff.totalTickets < avgTickets * 0.5 && avgTickets > 0;
+            
+            const cardClass = isOverloaded ? 'border-red-200 bg-red-50' : 
+                             isUnderloaded ? 'border-green-200 bg-green-50' : 
+                             'border-gray-200 bg-white';
+
+            const card = document.createElement('div');
+            card.className = `border rounded-lg p-6 ${cardClass}`;
+            
+            card.innerHTML = `
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h4 class="text-lg font-medium text-gray-900">${staff.staffInfo.name}</h4>
+                        <p class="text-sm text-gray-600">${staff.staffInfo.role}</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-2xl font-bold ${isOverloaded ? 'text-red-600' : isUnderloaded ? 'text-green-600' : 'text-blue-600'}">
+                            ${staff.totalTickets}
+                        </div>
+                        <div class="text-xs text-gray-500">총 티켓</div>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <div class="flex justify-between text-sm text-gray-600 mb-2">
+                        <span>업무 분포</span>
+                        <span>${staff.totalTickets > 0 ? '100%' : '0%'}</span>
+                    </div>
+                    <div class="workload-bar bg-gray-200">
+                        ${staff.totalTickets > 0 ? `
+                            <div class="workload-segment bg-red-500" style="width: ${(staff.openTickets / staff.totalTickets * 100)}%"></div>
+                            <div class="workload-segment bg-yellow-500" style="width: ${(staff.inProgressTickets / staff.totalTickets * 100)}%"></div>
+                            <div class="workload-segment bg-green-500" style="width: ${(staff.resolvedTickets / staff.totalTickets * 100)}%"></div>
+                        ` : ''}
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-3 gap-2 text-center text-xs">
+                    <div>
+                        <div class="font-medium text-red-600">${staff.openTickets}</div>
+                        <div class="text-gray-500">대기</div>
+                    </div>
+                    <div>
+                        <div class="font-medium text-yellow-600">${staff.inProgressTickets}</div>
+                        <div class="text-gray-500">진행중</div>
+                    </div>
+                    <div>
+                        <div class="font-medium text-green-600">${staff.resolvedTickets}</div>
+                        <div class="text-gray-500">완료</div>
+                    </div>
+                </div>
+                
+                <div class="mt-4 text-xs text-gray-500">
+                    전문분야: ${staff.staffInfo.specialties.join(', ')}
+                </div>
+                
+                ${isOverloaded ? '<div class="mt-2 text-xs text-red-600 font-medium">⚠️ 업무 과부하</div>' : ''}
+                ${isUnderloaded ? '<div class="mt-2 text-xs text-green-600 font-medium">✅ 여유 있음</div>' : ''}
+            `;
+            
+            return card;
+        }
+
+        function setupAssignmentManagement() {
+            const ticketSelect = document.getElementById('ticketSelect');
+            const assigneeSelect = document.getElementById('assigneeSelect');
+            
+            // Populate ticket select
+            ticketSelect.innerHTML = '<option value="">티켓을 선택하세요</option>';
+            allTickets.forEach(ticket => {
+                const option = document.createElement('option');
+                option.value = ticket.id;
+                option.textContent = `${ticket.number} - ${ticket.title}`;
+                ticketSelect.appendChild(option);
+            });
+            
+            // Populate assignee select
+            assigneeSelect.innerHTML = '<option value="">담당자를 선택하세요</option>';
+            allStaff.forEach(staff => {
+                const option = document.createElement('option');
+                option.value = staff.id;
+                option.textContent = `${staff.name} (${staff.role})`;
+                assigneeSelect.appendChild(option);
+            });
+        }
+
+        async function reassignTicket() {
+            const ticketId = document.getElementById('ticketSelect').value;
+            const assigneeId = document.getElementById('assigneeSelect').value;
+            
+            if (!ticketId || !assigneeId) {
+                alert('티켓과 담당자를 모두 선택해주세요.');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/tickets/${ticketId}/reassign`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ assigneeId })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('티켓이 성공적으로 재할당되었습니다.');
+                    loadWorkloadData(); // Refresh data
+                } else {
+                    alert('재할당 실패: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Error reassigning ticket:', error);
+                alert('재할당 중 오류가 발생했습니다.');
+            }
+        }
+
+        function displayStaffManagement() {
+            const staffTableBody = document.getElementById('staffTableBody');
+            staffTableBody.innerHTML = '';
+            
+            allStaff.forEach(staff => {
+                const workload = workloadData.find(w => w.staffInfo.id === staff.id);
+                const ticketCount = workload ? workload.totalTickets : 0;
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-medium mr-3">
+                                ${staff.name.charAt(0)}
+                            </div>
+                            <div class="text-sm font-medium text-gray-900">${staff.name}</div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${staff.role}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${staff.specialties.join(', ')}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${ticketCount}개</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <button onclick="editStaff('${staff.id}')" class="text-indigo-600 hover:text-indigo-900 mr-3">수정</button>
+                        <button onclick="deleteStaff('${staff.id}')" class="text-red-600 hover:text-red-900">삭제</button>
+                    </td>
+                `;
+                staffTableBody.appendChild(row);
+            });
+        }
+
+        let currentEditingStaffId = null;
+
+        function showStaffModal(staff = null) {
+            currentEditingStaffId = staff ? staff.id : null;
+            
+            document.getElementById('staffModalTitle').textContent = staff ? '직원 수정' : '직원 추가';
+            document.getElementById('staffName').value = staff ? staff.name : '';
+            document.getElementById('staffRole').value = staff ? staff.role : '';
+            document.getElementById('staffSpecialties').value = staff ? staff.specialties.join(', ') : '';
+            
+            document.getElementById('staffModal').classList.remove('hidden');
+        }
+
+        function hideStaffModal() {
+            document.getElementById('staffModal').classList.add('hidden');
+            currentEditingStaffId = null;
+        }
+
+        async function saveStaff() {
+            const name = document.getElementById('staffName').value.trim();
+            const role = document.getElementById('staffRole').value.trim();
+            const specialtiesText = document.getElementById('staffSpecialties').value.trim();
+            
+            if (!name || !role || !specialtiesText) {
+                alert('모든 필드를 입력해주세요.');
+                return;
+            }
+            
+            const specialties = specialtiesText.split(',').map(s => s.trim()).filter(s => s);
+            
+            try {
+                const url = currentEditingStaffId 
+                    ? `/api/tickets/staff/${currentEditingStaffId}`
+                    : '/api/tickets/staff';
+                    
+                const method = currentEditingStaffId ? 'PUT' : 'POST';
+                
+                const response = await fetch(url, {
+                    method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, role, specialties })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert(currentEditingStaffId ? '직원 정보가 수정되었습니다.' : '직원이 추가되었습니다.');
+                    hideStaffModal();
+                    loadWorkloadData(); // Refresh data
+                } else {
+                    alert('저장 실패: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Error saving staff:', error);
+                alert('저장 중 오류가 발생했습니다.');
+            }
+        }
+
+        function editStaff(staffId) {
+            const staff = allStaff.find(s => s.id === staffId);
+            if (staff) {
+                showStaffModal(staff);
+            }
+        }
+
+        async function deleteStaff(staffId) {
+            const staff = allStaff.find(s => s.id === staffId);
+            if (!staff) return;
+            
+            if (!confirm(`${staff.name} 직원을 삭제하시겠습니까?\\n\\n주의: 할당된 티켓이 있는 경우 삭제할 수 없습니다.`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/tickets/staff/${staffId}`, {
+                    method: 'DELETE'
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('직원이 삭제되었습니다.');
+                    loadWorkloadData(); // Refresh data
+                } else {
+                    alert('삭제 실패: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Error deleting staff:', error);
+                alert('삭제 중 오류가 발생했습니다.');
+            }
+        }
+
+        // Event listeners
+        document.getElementById('retryBtn').addEventListener('click', loadWorkloadData);
+        document.getElementById('reassignBtn').addEventListener('click', reassignTicket);
+        document.getElementById('addStaffBtn').addEventListener('click', () => showStaffModal());
+        document.getElementById('cancelStaffBtn').addEventListener('click', hideStaffModal);
+        document.getElementById('staffForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            saveStaff();
+        });
+
+        // Load data on page load
+        document.addEventListener('DOMContentLoaded', loadWorkloadData);
+    </script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+{
+  "ServiceName": "ai-secretary-app",
+  "SourceConfiguration": {
+    "AutoDeploymentsEnabled": false,
+    "CodeRepository": {
+      "RepositoryUrl": "https://github.com/your-repo/ai-secretary",
+      "SourceCodeVersion": {
+        "Type": "BRANCH",
+        "Value": "main"
+      },
+      "CodeConfiguration": {
+        "ConfigurationSource": "API",
+        "CodeConfigurationValues": {
+          "Runtime": "NODEJS_18",
+          "BuildCommand": "npm install",
+          "StartCommand": "npm start",
+          "RuntimeEnvironmentVariables": {
+            "NODE_ENV": "production",
+            "PORT": "3000"
+          }
+        }
+      }
+    }
+  },
+  "InstanceConfiguration": {
+    "Cpu": "0.25 vCPU",
+    "Memory": "0.5 GB"
+  }
+}

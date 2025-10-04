@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Secretary - 대시보드</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="gradient-bg shadow-lg">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="/" class="text-white text-xl font-bold">AI Secretary</a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/" class="text-white hover:text-gray-200 px-3 py-2 rounded-md">홈</a>
+                    <a href="/dashboard.html" class="text-white bg-blue-700 px-3 py-2 rounded-md">대시보드</a>
+                    <a href="/reports.html" class="text-white hover:text-gray-200 px-3 py-2 rounded-md">리포트</a>
+                    <a href="/workload.html" class="text-white hover:text-gray-200 px-3 py-2 rounded-md">인력 관리</a>
+                    <a href="/test.html" class="text-white hover:text-gray-200 px-3 py-2 rounded-md">테스트</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">운영 대시보드</h1>
+            <p class="mt-2 text-gray-600">실시간 시스템 현황 및 통계</p>
+            <button id="refreshBtn" class="mt-4 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 mr-2">
+                데이터 새로고침
+            </button>
+            <button id="testApiBtn" class="mt-4 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 mr-2">
+                API 테스트
+            </button>
+            <a href="/reports" class="mt-4 bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 inline-block">
+                📊 상세 리포트
+            </a>
+            <div id="apiTestResult" class="mt-4 hidden"></div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center">
+                                <span class="text-white text-sm">📨</span>
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">총 접수</dt>
+                                <dd class="text-lg font-medium text-gray-900" id="totalMessages">-</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-green-500 rounded-md flex items-center justify-center">
+                                <span class="text-white text-sm">🎫</span>
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">활성 티켓</dt>
+                                <dd class="text-lg font-medium text-gray-900" id="activeTickets">-</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-yellow-500 rounded-md flex items-center justify-center">
+                                <span class="text-white text-sm">⏰</span>
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">SLA 준수율</dt>
+                                <dd class="text-lg font-medium text-gray-900" id="slaCompliance">-</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-red-500 rounded-md flex items-center justify-center">
+                                <span class="text-white text-sm">⚠️</span>
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">위험 점수</dt>
+                                <dd class="text-lg font-medium text-gray-900" id="riskScore">-</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Messages -->
+        <div class="bg-white shadow rounded-lg mb-8">
+            <div class="px-4 py-5 sm:p-6">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">최근 접수 메시지</h3>
+                <div class="overflow-hidden">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">채널</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">내용</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">우선순위</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">상태</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">시간</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recentMessages" class="bg-white divide-y divide-gray-200">
+                            <tr>
+                                <td colspan="5" class="px-6 py-4 text-center text-gray-500">데이터를 불러오는 중...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Tickets -->
+        <div class="bg-white shadow rounded-lg mb-8">
+            <div class="px-4 py-5 sm:p-6">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">최근 생성된 티켓</h3>
+                <div class="overflow-hidden">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">티켓번호</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">제목</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">담당자</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">우선순위</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">상태</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SLA 마감</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">작업</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recentTickets" class="bg-white divide-y divide-gray-200">
+                            <tr>
+                                <td colspan="5" class="px-6 py-4 text-center text-gray-500">티켓을 불러오는 중...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- API Endpoints -->
+        <div class="bg-white shadow rounded-lg">
+            <div class="px-4 py-5 sm:p-6">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">API 엔드포인트 상태</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div class="border rounded-lg p-4">
+                        <h4 class="font-medium text-gray-900">Intake Hub</h4>
+                        <p class="text-sm text-gray-500 mt-1">다채널 메시지 접수</p>
+                        <div class="mt-2">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                활성
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="border rounded-lg p-4">
+                        <h4 class="font-medium text-gray-900">Ticketing</h4>
+                        <p class="text-sm text-gray-500 mt-1">티켓 관리 시스템</p>
+                        <div class="mt-2">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                활성
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="border rounded-lg p-4">
+                        <h4 class="font-medium text-gray-900">Reports</h4>
+                        <p class="text-sm text-gray-500 mt-1">리포트 생성</p>
+                        <div class="mt-2">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                활성
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="border rounded-lg p-4">
+                        <h4 class="font-medium text-gray-900">Risk Brief</h4>
+                        <p class="text-sm text-gray-500 mt-1">위험 분석</p>
+                        <div class="mt-2">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                활성
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="border rounded-lg p-4">
+                        <h4 class="font-medium text-gray-900">ERP Reader</h4>
+                        <p class="text-sm text-gray-500 mt-1">ERP 데이터 연동</p>
+                        <div class="mt-2">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                활성
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="border rounded-lg p-4">
+                        <h4 class="font-medium text-gray-900">Admin</h4>
+                        <p class="text-sm text-gray-500 mt-1">사용자 관리</p>
+                        <div class="mt-2">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                활성
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Load assignee information for tickets
+        async function loadTicketAssignees(tickets) {
+            try {
+                // Load staff data
+                const staffResponse = await fetch('/api/tickets/staff');
+                if (!staffResponse.ok) return;
+                
+                const staffData = await staffResponse.json();
+                if (!staffData.success) return;
+                
+                const staff = staffData.data;
+                
+                // Update each ticket's assignee display
+                tickets.forEach(ticket => {
+                    const assigneeElement = document.getElementById(`assignee-${ticket.id}`);
+                    if (!assigneeElement) return;
+                    
+                    if (ticket.assigneeId) {
+                        const assignee = staff.find(s => s.id === ticket.assigneeId);
+                        if (assignee) {
+                            assigneeElement.innerHTML = `
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-medium">
+                                        ${assignee.name.charAt(0)}
+                                    </div>
+                                    <span class="text-sm text-gray-900">${assignee.name}</span>
+                                </div>
+                            `;
+                        } else {
+                            assigneeElement.innerHTML = '<span class="text-sm text-gray-500">알 수 없음</span>';
+                        }
+                    } else {
+                        assigneeElement.innerHTML = '<span class="text-sm text-gray-400">미할당</span>';
+                    }
+                });
+            } catch (error) {
+                console.error('Error loading assignees:', error);
+                // Clear loading states
+                document.querySelectorAll('.loading-assignee').forEach(el => {
+                    el.textContent = '로드 실패';
+                    el.className = 'text-sm text-red-500';
+                });
+            }
+        }
+
+        // Load dashboard data
+        async function loadDashboardData() {
+            try {
+                console.log('Loading dashboard data...');
+                // Load intake stats
+                const intakeResponse = await fetch('/api/intake/stats');
+                console.log('Intake response status:', intakeResponse.status);
+                if (intakeResponse.ok) {
+                    const intakeData = await intakeResponse.json();
+                    console.log('Intake data:', intakeData);
+                    if (intakeData.success) {
+                        document.getElementById('totalMessages').textContent = intakeData.data.totalMessages || '0';
+                        
+                        // Update recent messages table
+                        const messagesTable = document.getElementById('recentMessages');
+                        const messages = intakeData.data.recentMessages || [];
+                        console.log('Messages found:', messages.length);
+                        
+                        if (messages.length === 0) {
+                            messagesTable.innerHTML = `
+                                <tr>
+                                    <td colspan="5" class="px-6 py-4 text-center text-gray-500">
+                                        아직 접수된 메시지가 없습니다. <a href="/test" class="text-blue-600 hover:text-blue-800">테스트 페이지</a>에서 메시지를 전송해보세요.
+                                    </td>
+                                </tr>
+                            `;
+                        } else {
+                            messagesTable.innerHTML = messages.map(message => {
+                                const channelEmoji = {
+                                    'sms': '📱',
+                                    'email': '📧',
+                                    'web': '🌐',
+                                    'call': '📞'
+                                };
+                                
+                                const priorityColor = {
+                                    'urgent': 'bg-red-100 text-red-800',
+                                    'high': 'bg-orange-100 text-orange-800',
+                                    'medium': 'bg-yellow-100 text-yellow-800',
+                                    'low': 'bg-green-100 text-green-800'
+                                };
+                                
+                                const statusColor = {
+                                    'pending': 'bg-gray-100 text-gray-800',
+                                    'classified': 'bg-blue-100 text-blue-800',
+                                    'assigned': 'bg-purple-100 text-purple-800',
+                                    'processed': 'bg-green-100 text-green-800'
+                                };
+
+                                const statusLabels = {
+                                    'pending': '대기중',
+                                    'classified': '분류완료',
+                                    'assigned': '할당됨',
+                                    'processed': '처리완료'
+                                };
+                                
+                                return `
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            ${channelEmoji[message.channel] || '📝'} ${message.channel.toUpperCase()}
+                                        </td>
+                                        <td class="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">
+                                            ${message.maskedContent || message.content}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${priorityColor[message.priority] || 'bg-gray-100 text-gray-800'}">
+                                                ${message.priority}
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex flex-col space-y-2">
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColor[message.status] || 'bg-gray-100 text-gray-800'}">
+                                                    ${statusLabels[message.status] || message.status}
+                                                </span>
+                                                <div class="flex space-x-1">
+                                                    <input type="radio" id="pending_${message.id}" name="status_${message.id}" value="pending" 
+                                                           ${message.status === 'pending' ? 'checked' : ''} 
+                                                           onchange="updateMessageStatus('${message.id}', 'pending')" class="text-xs">
+                                                    <label for="pending_${message.id}" class="text-xs text-gray-600">대기</label>
+                                                </div>
+                                                <div class="flex space-x-1">
+                                                    <input type="radio" id="classified_${message.id}" name="status_${message.id}" value="classified" 
+                                                           ${message.status === 'classified' ? 'checked' : ''} 
+                                                           onchange="updateMessageStatus('${message.id}', 'classified')" class="text-xs">
+                                                    <label for="classified_${message.id}" class="text-xs text-gray-600">분류</label>
+                                                </div>
+                                                <div class="flex space-x-1">
+                                                    <input type="radio" id="assigned_${message.id}" name="status_${message.id}" value="assigned" 
+                                                           ${message.status === 'assigned' ? 'checked' : ''} 
+                                                           onchange="updateMessageStatus('${message.id}', 'assigned')" class="text-xs">
+                                                    <label for="assigned_${message.id}" class="text-xs text-gray-600">할당</label>
+                                                </div>
+                                                <div class="flex space-x-1">
+                                                    <input type="radio" id="processed_${message.id}" name="status_${message.id}" value="processed" 
+                                                           ${message.status === 'processed' ? 'checked' : ''} 
+                                                           onchange="updateMessageStatus('${message.id}', 'processed')" class="text-xs">
+                                                    <label for="processed_${message.id}" class="text-xs text-gray-600">완료</label>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            ${new Date(message.createdAt).toLocaleString('ko-KR')}
+                                        </td>
+                                    </tr>
+                                `;
+                            }).join('');
+                        }
+                    }
+                }
+
+                // Load SLA dashboard
+                const slaResponse = await fetch('/api/tickets/sla/dashboard');
+                if (slaResponse.ok) {
+                    const slaData = await slaResponse.json();
+                    if (slaData.success) {
+                        document.getElementById('activeTickets').textContent = slaData.data.totalTickets || '0';
+                        document.getElementById('slaCompliance').textContent = (slaData.data.slaPerformance || 0).toFixed(1) + '%';
+                    }
+                }
+
+                // Load recent tickets
+                const ticketsResponse = await fetch('/api/tickets?limit=10');
+                if (ticketsResponse.ok) {
+                    const ticketsData = await ticketsResponse.json();
+                    if (ticketsData.success) {
+                        const ticketsTable = document.getElementById('recentTickets');
+                        const tickets = ticketsData.data || [];
+                        
+                        if (tickets.length === 0) {
+                            ticketsTable.innerHTML = `
+                                <tr>
+                                    <td colspan="7" class="px-6 py-4 text-center text-gray-500">
+                                        아직 생성된 티켓이 없습니다. 메시지를 분류하면 자동으로 티켓이 생성됩니다.
+                                    </td>
+                                </tr>
+                            `;
+                        } else {
+                            const priorityColor = {
+                                'urgent': 'bg-red-100 text-red-800',
+                                'high': 'bg-orange-100 text-orange-800',
+                                'medium': 'bg-yellow-100 text-yellow-800',
+                                'low': 'bg-green-100 text-green-800'
+                            };
+                            
+                            const statusColor = {
+                                'open': 'bg-blue-100 text-blue-800',
+                                'in_progress': 'bg-purple-100 text-purple-800',
+                                'pending': 'bg-yellow-100 text-yellow-800',
+                                'resolved': 'bg-green-100 text-green-800',
+                                'closed': 'bg-gray-100 text-gray-800'
+                            };
+
+                            const statusLabels = {
+                                'open': '열림',
+                                'in_progress': '진행중',
+                                'pending': '대기',
+                                'resolved': '해결됨',
+                                'closed': '닫힘'
+                            };
+                            
+                            ticketsTable.innerHTML = tickets.map(ticket => {
+                                const slaDeadline = new Date(ticket.slaDeadline);
+                                const now = new Date();
+                                const isOverdue = now > slaDeadline;
+                                
+                                return `
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                            <a href="/ticket-detail?id=${ticket.id}" class="text-indigo-600 hover:text-indigo-900">
+                                                ${ticket.number}
+                                            </a>
+                                        </td>
+                                        <td class="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">
+                                            <a href="/ticket-detail?id=${ticket.id}" class="text-gray-900 hover:text-indigo-600">
+                                                ${ticket.title}
+                                            </a>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" id="assignee-${ticket.id}">
+                                            <span class="loading-assignee">로딩중...</span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${priorityColor[ticket.priority] || 'bg-gray-100 text-gray-800'}">
+                                                ${ticket.priority}
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColor[ticket.status] || 'bg-gray-100 text-gray-800'}">
+                                                ${statusLabels[ticket.status] || ticket.status}
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm ${isOverdue ? 'text-red-600 font-medium' : 'text-gray-500'}">
+                                            ${slaDeadline.toLocaleString('ko-KR')}
+                                            ${isOverdue ? ' (지연)' : ''}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                            <a href="/ticket-detail?id=${ticket.id}" class="text-indigo-600 hover:text-indigo-900">
+                                                상세보기
+                                            </a>
+                                        </td>
+                                    </tr>
+                                `;
+                            }).join('');
+                            
+                            // Load assignee information for each ticket
+                            loadTicketAssignees(tickets);
+                        }
+                    }
+                }
+
+                // Load risk dashboard
+                const riskResponse = await fetch('/api/risk/dashboard');
+                if (riskResponse.ok) {
+                    const riskData = await riskResponse.json();
+                    if (riskData.success) {
+                        document.getElementById('riskScore').textContent = riskData.data.riskScore || '0';
+                    }
+                }
+
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+            }
+        }
+
+        // Load data on page load
+        document.addEventListener('DOMContentLoaded', loadDashboardData);
+
+        // Manual refresh button
+        document.getElementById('refreshBtn').addEventListener('click', loadDashboardData);
+
+        // API test button
+        document.getElementById('testApiBtn').addEventListener('click', async () => {
+            try {
+                const response = await fetch('/api/intake/test');
+                const data = await response.json();
+                const resultDiv = document.getElementById('apiTestResult');
+                resultDiv.className = 'mt-4 p-4 bg-green-50 border border-green-200 rounded-md';
+                resultDiv.innerHTML = `<pre class="text-sm text-green-800">${JSON.stringify(data, null, 2)}</pre>`;
+                resultDiv.classList.remove('hidden');
+                
+                // Also test stats endpoint
+                const statsResponse = await fetch('/api/intake/stats');
+                const statsData = await statsResponse.json();
+                resultDiv.innerHTML += `<hr class="my-2"><pre class="text-sm text-green-800">${JSON.stringify(statsData, null, 2)}</pre>`;
+            } catch (error) {
+                const resultDiv = document.getElementById('apiTestResult');
+                resultDiv.className = 'mt-4 p-4 bg-red-50 border border-red-200 rounded-md';
+                resultDiv.innerHTML = `<pre class="text-sm text-red-800">Error: ${error.message}</pre>`;
+                resultDiv.classList.remove('hidden');
+            }
+        });
+
+        // Update message status function
+        async function updateMessageStatus(messageId, newStatus) {
+            try {
+                console.log('Updating message status:', messageId, newStatus);
+                const response = await fetch(`/api/intake/messages/${messageId}/status`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: newStatus })
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log('Status updated successfully:', result);
+                    // Refresh the dashboard to show updated status
+                    loadDashboardData();
+                } else {
+                    console.error('Failed to update status:', response.status);
+                    alert('상태 업데이트에 실패했습니다.');
+                }
+            } catch (error) {
+                console.error('Error updating status:', error);
+                alert('상태 업데이트 중 오류가 발생했습니다.');
+            }
+        }
+
+        // Refresh data every 30 seconds
+        setInterval(loadDashboardData, 30000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "elasticbeanstalk:*",
+                "ec2:DescribeVpcs",
+                "ec2:DescribeSubnets",
+                "ec2:DescribeSecurityGroups",
+                "ec2:DescribeKeyPairs",
+                "ec2:DescribeInstances",
+                "ec2:DescribeImages",
+                "ec2:DescribeAvailabilityZones",
+                "iam:PassRole",
+                "s3:GetObject",
+                "s3:PutObject",
+                "s3:ListBucket",
+                "cloudformation:DescribeStacks",
+                "cloudformation:DescribeStackEvents"
+            ],
+            "Resource": "*"
+        }
+    ]
+}

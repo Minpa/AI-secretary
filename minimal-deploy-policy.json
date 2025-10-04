@@ -1,0 +1,31 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "BasicStatusCheck",
+            "Effect": "Allow",
+            "Action": [
+                "sts:GetCallerIdentity",
+                "iam:GetUser",
+                "iam:ListAttachedUserPolicies"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "DeploymentStatusCheck",
+            "Effect": "Allow",
+            "Action": [
+                "apprunner:ListServices",
+                "apprunner:DescribeService",
+                "elasticbeanstalk:DescribeApplications",
+                "elasticbeanstalk:DescribeEnvironments",
+                "cloudformation:ListStacks",
+                "cloudformation:DescribeStacks",
+                "ecs:ListClusters",
+                "ecs:ListServices",
+                "ecs:DescribeServices"
+            ],
+            "Resource": "*"
+        }
+    ]
+}

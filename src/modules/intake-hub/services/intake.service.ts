@@ -11,6 +11,7 @@ interface CreateMessageInput {
   content: string;
   sender: string;
   createdAt?: Date; // Optional custom timestamp for dummy data generation
+  metadata?: any; // Optional metadata for additional information
 }
 
 export class IntakeService {
