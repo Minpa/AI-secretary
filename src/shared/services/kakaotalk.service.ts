@@ -46,7 +46,9 @@ export class KakaoTalkService {
       
       [MessageClassification.COMPLAINT]: '📝 민원이 접수되었습니다.\n신속한 처리를 위해 상세 정보를 확인하겠습니다.',
       
-      [MessageClassification.MAINTENANCE]: '🔧 시설 관리 요청이 접수되었습니다.\n담당자가 확인 후 처리하겠습니다.'
+      [MessageClassification.MAINTENANCE]: '🔧 시설 관리 요청이 접수되었습니다.\n담당자가 확인 후 처리하겠습니다.',
+      
+      [MessageClassification.SECURITY]: '🔒 보안 관련 문의가 접수되었습니다.\n보안 담당자가 확인 후 조치하겠습니다.'
     };
 
     return responses[classification] || '✅ 접수되었습니다.\n담당자가 확인 후 연락드리겠습니다.';
@@ -121,6 +123,16 @@ export class KakaoTalkService {
           "난방/온수 불량",
           "가스 누출",
           "화재",
+          "기타"
+        ]
+      },
+      
+      [MessageClassification.SECURITY]: {
+        type: "buttons",
+        buttons: [
+          "출입 통제",
+          "CCTV 확인",
+          "보안 점검",
           "기타"
         ]
       }

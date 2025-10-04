@@ -456,14 +456,14 @@
                                 return `
                                     <tr class="hover:bg-gray-50">
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                            <a href="/ticket-detail?id=${ticket.id}" class="text-indigo-600 hover:text-indigo-900">
+                                            <button onclick="openTicketModal('${ticket.id}')" class="text-indigo-600 hover:text-indigo-900 cursor-pointer">
                                                 ${ticket.number}
-                                            </a>
+                                            </button>
                                         </td>
                                         <td class="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">
-                                            <a href="/ticket-detail?id=${ticket.id}" class="text-gray-900 hover:text-indigo-600">
+                                            <button onclick="openTicketModal('${ticket.id}')" class="text-gray-900 hover:text-indigo-600 cursor-pointer text-left">
                                                 ${ticket.title}
-                                            </a>
+                                            </button>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" id="assignee-${ticket.id}">
                                             <span class="loading-assignee">로딩중...</span>
@@ -566,6 +566,190 @@
 
         // Refresh data every 30 seconds
         setInterval(loadDashboardData, 30000);
+        // Ticket Modal Functions
+        async function openTicketModal(ticketId) {
+            const modal = document.getElementById('ticketModal');
+            const modalContent = document.getElementById('ticketModalContent');
+            
+            // Show modal with loading state
+            modal.classList.remove('hidden');
+            modalContent.innerHTML = `
+                <div class="text-center py-12">
+                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+                    <p class="mt-4 text-gray-600">티켓 정보를 불러오는 중...</p>
+                </div>
+            `;
+            
+            try {
+                // Load ticket details
+                const response = await fetch(`/api/tickets/${ticketId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const ticket = data.data;
+                    
+                    const priorityColors = {
+                        'urgent': 'bg-red-100 text-red-800',
+                        'high': 'bg-orange-100 text-orange-800',
+                        'medium': 'bg-yellow-100 text-yellow-800',
+                        'low': 'bg-green-100 text-green-800'
+                    };
+                    
+                    const statusColors = {
+                        'pending': 'bg-gray-100 text-gray-800',
+                        'assigned': 'bg-blue-100 text-blue-800',
+                        'in_progress': 'bg-purple-100 text-purple-800',
+                        'processed': 'bg-green-100 text-green-800'
+                    };
+                    
+                    modalContent.innerHTML = `
+                        <div class="bg-white">
+                            <!-- Modal Header -->
+                            <div class="flex items-center justify-between p-6 border-b">
+                                <div>
+                                    <h2 class="text-2xl font-bold text-gray-900">${ticket.number}</h2>
+                                    <p class="text-gray-600">${ticket.title}</p>
+                                </div>
+                                <button onclick="closeTicketModal()" class="text-gray-400 hover:text-gray-600">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                            
+                            <!-- Modal Body -->
+                            <div class="p-6 max-h-96 overflow-y-auto">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <!-- Left Column -->
+                                    <div>
+                                        <h3 class="text-lg font-medium text-gray-900 mb-4">티켓 정보</h3>
+                                        
+                                        <div class="space-y-3">
+                                            <div>
+                                                <label class="text-sm font-medium text-gray-500">상태</label>
+                                                <div class="mt-1">
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColors[ticket.status] || 'bg-gray-100 text-gray-800'}">
+                                                        ${ticket.status}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            
+                                            <div>
+                                                <label class="text-sm font-medium text-gray-500">우선순위</label>
+                                                <div class="mt-1">
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${priorityColors[ticket.priority] || 'bg-gray-100 text-gray-800'}">
+                                                        ${ticket.priority}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            
+                                            <div>
+                                                <label class="text-sm font-medium text-gray-500">담당자</label>
+                                                <p class="mt-1 text-sm text-gray-900">${ticket.assignee || '미할당'}</p>
+                                            </div>
+                                            
+                                            <div>
+                                                <label class="text-sm font-medium text-gray-500">신고자</label>
+                                                <p class="mt-1 text-sm text-gray-900">${ticket.reporter}</p>
+                                            </div>
+                                            
+                                            <div>
+                                                <label class="text-sm font-medium text-gray-500">생성일</label>
+                                                <p class="mt-1 text-sm text-gray-900">${new Date(ticket.createdAt).toLocaleString('ko-KR')}</p>
+                                            </div>
+                                            
+                                            <div>
+                                                <label class="text-sm font-medium text-gray-500">마감일</label>
+                                                <p class="mt-1 text-sm text-gray-900">${new Date(ticket.slaDeadline).toLocaleString('ko-KR')}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Right Column -->
+                                    <div>
+                                        <h3 class="text-lg font-medium text-gray-900 mb-4">상세 내용</h3>
+                                        <div class="bg-gray-50 rounded-lg p-4">
+                                            <p class="text-sm text-gray-700">${ticket.description}</p>
+                                        </div>
+                                        
+                                        ${ticket.comments && ticket.comments.length > 0 ? `
+                                            <h4 class="text-md font-medium text-gray-900 mt-6 mb-3">댓글</h4>
+                                            <div class="space-y-3">
+                                                ${ticket.comments.map(comment => `
+                                                    <div class="bg-blue-50 rounded-lg p-3">
+                                                        <div class="flex justify-between items-start mb-2">
+                                                            <span class="text-sm font-medium text-gray-900">${comment.author}</span>
+                                                            <span class="text-xs text-gray-500">${new Date(comment.createdAt).toLocaleString('ko-KR')}</span>
+                                                        </div>
+                                                        <p class="text-sm text-gray-700">${comment.content}</p>
+                                                    </div>
+                                                `).join('')}
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Modal Footer -->
+                            <div class="flex justify-end space-x-3 p-6 border-t bg-gray-50">
+                                <button onclick="closeTicketModal()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                                    닫기
+                                </button>
+                                <button class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700">
+                                    수정
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    modalContent.innerHTML = `
+                        <div class="text-center py-12">
+                            <div class="text-red-600 text-6xl mb-4">⚠️</div>
+                            <h2 class="text-2xl font-bold text-gray-900 mb-2">티켓을 찾을 수 없습니다</h2>
+                            <p class="text-gray-600 mb-4">요청하신 티켓이 존재하지 않거나 삭제되었습니다.</p>
+                            <button onclick="closeTicketModal()" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">
+                                닫기
+                            </button>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading ticket:', error);
+                modalContent.innerHTML = `
+                    <div class="text-center py-12">
+                        <div class="text-red-600 text-6xl mb-4">❌</div>
+                        <h2 class="text-2xl font-bold text-gray-900 mb-2">오류가 발생했습니다</h2>
+                        <p class="text-gray-600 mb-4">티켓 정보를 불러오는 중 오류가 발생했습니다.</p>
+                        <button onclick="closeTicketModal()" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">
+                            닫기
+                        </button>
+                    </div>
+                `;
+            }
+        }
+        
+        function closeTicketModal() {
+            document.getElementById('ticketModal').classList.add('hidden');
+        }
+        
+        // Close modal when clicking outside
+        document.addEventListener('click', function(event) {
+            const modal = document.getElementById('ticketModal');
+            if (event.target === modal) {
+                closeTicketModal();
+            }
+        });
+        
     </script>
+
+    <!-- Ticket Detail Modal -->
+    <div id="ticketModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+            <div id="ticketModalContent">
+                <!-- Modal content will be loaded here -->
+            </div>
+        </div>
+    </div>
+
 </body>
 </html>

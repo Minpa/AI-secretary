@@ -249,6 +249,14 @@ export class ConversationService {
         field: "scheduleType",
         options: ["공사 일정", "소독 일정", "도색 일정", "기타"]
       }
+    ],
+
+    [MessageClassification.SECURITY]: [
+      {
+        question: "보안 관련 어떤 문의인가요?\n1️⃣ 출입 통제\n2️⃣ CCTV 확인\n3️⃣ 보안 점검\n4️⃣ 기타",
+        field: "securityType",
+        options: ["출입통제", "CCTV", "보안점검", "기타"]
+      }
     ]
   };
 
@@ -348,7 +356,24 @@ export class ConversationService {
       [MessageClassification.COMMON_FACILITY]: "🔧 시설 담당자가 확인 후 수리 일정을 안내드리겠습니다.\n⏰ 예상 처리 시간: 1-3일",
       [MessageClassification.NOISE]: "🔇 소음 담당자가 현장 확인 후 조치하겠습니다.\n📋 필요시 층간소음 측정을 진행할 수 있습니다.",
       [MessageClassification.PARKING]: "🚗 주차 관리 담당자가 확인 후 조치하겠습니다.\n⚠️ 불법 주차의 경우 경고장 발송 예정입니다.",
-      [MessageClassification.BILLING]: "💰 회계 담당자가 확인 후 상세 내역을 안내드리겠습니다.\n📄 관리비 내역서는 관리사무소에서 발급 가능합니다."
+      [MessageClassification.BILLING]: "💰 회계 담당자가 확인 후 상세 내역을 안내드리겠습니다.\n📄 관리비 내역서는 관리사무소에서 발급 가능합니다.",
+      [MessageClassification.SECURITY]: "🔒 보안 담당자가 확인 후 조치하겠습니다.\n📹 CCTV 확인이 필요한 경우 별도 안내드리겠습니다.",
+      [MessageClassification.ACCESS_CONTROL]: "🚪 출입 통제 담당자가 확인 후 조치하겠습니다.",
+      [MessageClassification.LANDSCAPING]: "🌳 조경 담당자가 확인 후 조치하겠습니다.",
+      [MessageClassification.LIGHTING]: "💡 조명 담당자가 확인 후 조치하겠습니다.",
+      [MessageClassification.SMOKING]: "🚭 금연 관련 담당자가 확인 후 조치하겠습니다.",
+      [MessageClassification.RESIDENT_DISPUTE]: "👥 분쟁 조정 담당자가 확인 후 연락드리겠습니다.",
+      [MessageClassification.STAFF_SERVICE]: "👨‍💼 해당 부서 담당자가 확인 후 조치하겠습니다.",
+      [MessageClassification.UNIT_REPAIR]: "🔨 세대 수리 담당자가 확인 후 조치하겠습니다.",
+      [MessageClassification.ADMINISTRATION]: "📋 행정 담당자가 확인 후 처리하겠습니다.",
+      [MessageClassification.STATUS_INQUIRY]: "📊 해당 민원 담당자가 현재 상태를 안내드리겠습니다.",
+      [MessageClassification.DELIVERY]: "📦 택배 관리 담당자가 확인 후 조치하겠습니다.",
+      [MessageClassification.SAFETY]: "🛡️ 안전 점검 담당자가 확인 후 조치하겠습니다.",
+      [MessageClassification.SCHEDULE]: "📅 해당 일정 담당자가 확인 후 안내드리겠습니다.",
+      [MessageClassification.HYGIENE]: "🧹 위생 관리 담당자가 확인 후 조치하겠습니다.",
+      [MessageClassification.INQUIRY]: "❓ 담당자가 확인 후 답변드리겠습니다.",
+      [MessageClassification.COMPLAINT]: "📝 민원 담당자가 확인 후 처리하겠습니다.",
+      [MessageClassification.MAINTENANCE]: "🔧 유지보수 담당자가 확인 후 조치하겠습니다."
     };
 
     return nextSteps[classification] || "📞 담당자가 확인 후 연락드리겠습니다.\n⏰ 처리 완료까지 1-3일 소요 예정입니다.";

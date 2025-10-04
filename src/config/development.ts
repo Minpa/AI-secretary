@@ -26,8 +26,8 @@ export const development: Config = {
   },
   sms: {
     provider: 'twilio',
-    apiKey: process.env.TWILIO_ACCOUNT_SID || '',
-    apiSecret: process.env.TWILIO_AUTH_TOKEN || ''
+    apiKey: process.env.TWILIO_ACCOUNT_SID || 'test_account_sid',
+    apiSecret: process.env.TWILIO_AUTH_TOKEN || 'test_auth_token'
   },
   email: {
     smtp: {

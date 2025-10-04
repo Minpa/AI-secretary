@@ -9,11 +9,26 @@ export class SMSService {
 
   constructor() {
     if (config.sms.provider === 'twilio' && config.sms.apiKey && config.sms.apiSecret) {
+      // Skip Twilio initialization in development with test credentials
+      if (config.sms.apiKey === 'test_account_sid') {
+        logger.info('SMS Service initialized in development mode (no actual Twilio connection)');
+        return;
+      }
       this.client = twilio(config.sms.apiKey, config.sms.apiSecret);
     }
   }
 
   async sendSMS(to: string, message: string): Promise<boolean> {
+    // In development mode with test credentials, just log the message
+    if (config.sms.apiKey === 'test_account_sid') {
+      logger.info('SMS (Development Mode)', { 
+        to, 
+        message,
+        note: 'This is a simulated SMS in development mode'
+      });
+      return true;
+    }
+
     if (!this.client) {
       logger.warn('SMS service not configured, skipping SMS send');
       return false;

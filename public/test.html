@@ -1422,6 +1422,34 @@
                 setTimeout(() => {
                     addMessageToHistory('AI 비서', currentSMSConversation.completion, false, 'smsConversationHistory', 'sms');
 
+                    // Send conversation data to backend to create ticket
+                    const conversationData = {
+                        from: '010-1234-' + Math.floor(Math.random() * 10000).toString().padStart(4, '0'),
+                        body: `${currentSMSConversation.title} 문의드립니다.`
+                    };
+
+                    // Send to SMS intake API
+                    const xhr = new XMLHttpRequest();
+                    xhr.open('POST', '/api/intake/sms', true);
+                    xhr.setRequestHeader('Content-Type', 'application/json');
+                    
+                    xhr.onreadystatechange = function () {
+                        if (xhr.readyState === 4) {
+                            if (xhr.status === 201) {
+                                try {
+                                    const response = JSON.parse(xhr.responseText);
+                                    if (response.success) {
+                                        addMessageToHistory('시스템', `🎫 티켓이 생성되었습니다: ${response.data.id}`, false, 'smsConversationHistory', 'sms');
+                                    }
+                                } catch (e) {
+                                    console.error('Failed to parse response:', e);
+                                }
+                            }
+                        }
+                    };
+                    
+                    xhr.send(JSON.stringify(conversationData));
+
                     // Disable input
                     const userResponse = document.getElementById('smsUserResponse');
                     const sendResponse = document.getElementById('sendSMSResponse');
@@ -1546,6 +1574,35 @@
                 setTimeout(() => {
                     addMessageToHistory('AI 비서', currentKakaoConversation.completion, false, 'kakaoConversationHistory', 'kakao');
 
+                    // Send conversation data to backend to create ticket
+                    const conversationData = {
+                        user_key: 'simulator_user_' + Date.now(),
+                        content: `${currentKakaoConversation.title} 문의드립니다.`,
+                        type: 'text'
+                    };
+
+                    // Send to KakaoTalk intake API
+                    const xhr = new XMLHttpRequest();
+                    xhr.open('POST', '/api/intake/kakaotalk', true);
+                    xhr.setRequestHeader('Content-Type', 'application/json');
+                    
+                    xhr.onreadystatechange = function () {
+                        if (xhr.readyState === 4) {
+                            if (xhr.status === 201) {
+                                try {
+                                    const response = JSON.parse(xhr.responseText);
+                                    if (response.success) {
+                                        addMessageToHistory('시스템', `🎫 티켓이 생성되었습니다: ${response.data.id}`, false, 'kakaoConversationHistory', 'kakao');
+                                    }
+                                } catch (e) {
+                                    console.error('Failed to parse response:', e);
+                                }
+                            }
+                        }
+                    };
+                    
+                    xhr.send(JSON.stringify(conversationData));
+
                     // Disable input
                     const userResponse = document.getElementById('kakaoUserResponse');
                     const sendResponse = document.getElementById('sendKakaoResponse');
@@ -1668,6 +1725,34 @@
                 addMessageToHistory('AI 비서', '✅ 정보 수집이 완료되었습니다.');
                 setTimeout(() => {
                     addMessageToHistory('AI 비서', currentConversation.completion);
+
+                    // Send conversation data to backend to create ticket
+                    const conversationData = {
+                        email: 'simulator@example.com',
+                        message: `${currentConversation.title} 문의드립니다.`
+                    };
+
+                    // Send to Web intake API
+                    const xhr = new XMLHttpRequest();
+                    xhr.open('POST', '/api/intake/web', true);
+                    xhr.setRequestHeader('Content-Type', 'application/json');
+                    
+                    xhr.onreadystatechange = function () {
+                        if (xhr.readyState === 4) {
+                            if (xhr.status === 201) {
+                                try {
+                                    const response = JSON.parse(xhr.responseText);
+                                    if (response.success) {
+                                        addMessageToHistory('시스템', `🎫 티켓이 생성되었습니다: ${response.data.id}`);
+                                    }
+                                } catch (e) {
+                                    console.error('Failed to parse response:', e);
+                                }
+                            }
+                        }
+                    };
+                    
+                    xhr.send(JSON.stringify(conversationData));
 
                     // Disable input
                     const userResponse = document.getElementById('userResponse');

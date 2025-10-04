@@ -85,7 +85,7 @@ export class UnitAnalyticsService {
             const cachedResult = cacheService.get(cacheKey);
             if (cachedResult) {
                 logger.info('Returning cached unit analytics', { cacheKey });
-                return cachedResult;
+                return cachedResult as { topUnits: TopUnit[]; metrics: UnitMetrics; summary: { totalActiveUnits: number; totalRequests: number; dateRange: { start: string; end: string; }; }; };
             }
 
             // Build date range
