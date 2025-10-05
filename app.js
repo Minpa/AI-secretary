@@ -39,8 +39,8 @@ const server = http.createServer((req, res) => {
       status: 'healthy',
       timestamp: new Date().toISOString(),
       environment: process.env.NODE_ENV || 'development',
-      version: '1.0.3',
-      commit: '4f4593c'
+      version: '1.0.4',
+      commit: 'a581257'
     }));
     return;
   }
@@ -49,8 +49,8 @@ const server = http.createServer((req, res) => {
   if (pathname === '/api/version') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({
-      version: '1.0.3',
-      commit: '4f4593c',
+      version: '1.0.5',
+      commit: 'latest',
       buildTime: new Date().toISOString(),
       environment: process.env.NODE_ENV || 'development'
     }));
@@ -156,6 +156,52 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  if (pathname === '/api/tickets/workload/analytics') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({
+      success: true,
+      data: [
+        {
+          staffInfo: { id: 'staff_001', name: '김관리', role: '소장' },
+          totalTickets: 5,
+          openTickets: 2,
+          inProgressTickets: 2,
+          resolvedTickets: 1
+        },
+        {
+          staffInfo: { id: 'staff_002', name: '이직원', role: '관리사무소' },
+          totalTickets: 3,
+          openTickets: 1,
+          inProgressTickets: 1,
+          resolvedTickets: 1
+        }
+      ]
+    }));
+    return;
+  }
+
+  // Handle individual ticket requests
+  if (pathname.startsWith('/api/tickets/') && pathname !== '/api/tickets/staff' && pathname !== '/api/tickets/sla/dashboard') {
+    const ticketId = pathname.split('/')[3];
+    if (ticketId) {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({
+        success: true,
+        data: {
+          id: ticketId,
+          title: '엘리베이터 고장 신고',
+          content: '엘리베이터가 고장났어요. 빨리 수리해주세요.',
+          status: 'open',
+          priority: 'high',
+          assignee: 'staff_001',
+          createdAt: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
+          updatedAt: new Date().toISOString()
+        }
+      }));
+      return;
+    }
+  }
+
   // Handle POST requests for intake endpoints
   if (req.method === 'POST' && pathname.startsWith('/api/intake/')) {
     let body = '';
@@ -178,6 +224,48 @@ const server = http.createServer((req, res) => {
         res.end(JSON.stringify({ error: 'Invalid JSON' }));
       }
     });
+    return;
+  }
+
+  // Handle PATCH requests for ticket updates
+  if (req.method === 'PATCH' && pathname.startsWith('/api/')) {
+    let body = '';
+    req.on('data', chunk => {
+      body += chunk.toString();
+    });
+    req.on('end', () => {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({
+        success: true,
+        message: 'Updated successfully'
+      }));
+    });
+    return;
+  }
+
+  // Handle other POST requests
+  if (req.method === 'POST' && pathname.startsWith('/api/')) {
+    let body = '';
+    req.on('data', chunk => {
+      body += chunk.toString();
+    });
+    req.on('end', () => {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({
+        success: true,
+        message: 'Created successfully'
+      }));
+    });
+    return;
+  }
+
+  // Handle DELETE requests
+  if (req.method === 'DELETE' && pathname.startsWith('/api/')) {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({
+      success: true,
+      message: 'Deleted successfully'
+    }));
     return;
   }
 
