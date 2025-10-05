@@ -82,6 +82,63 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // Additional API endpoints for dashboard
+  if (pathname === '/api/tickets/staff') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({
+      staff: [
+        { id: 'staff_001', name: '김관리', role: '소장', active: true },
+        { id: 'staff_002', name: '이직원', role: '관리사무소', active: true }
+      ]
+    }));
+    return;
+  }
+
+  if (pathname === '/api/tickets/sla/dashboard') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({
+      slaCompliance: 95.2,
+      avgResponseTime: 2.3,
+      overdueTickets: 3
+    }));
+    return;
+  }
+
+  if (pathname === '/api/tickets' || pathname.startsWith('/api/tickets?')) {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({
+      tickets: [
+        {
+          id: 'ticket_001',
+          title: '엘리베이터 고장 신고',
+          status: 'open',
+          priority: 'high',
+          assignee: 'staff_001',
+          createdAt: new Date(Date.now() - 1000 * 60 * 45).toISOString()
+        },
+        {
+          id: 'ticket_002', 
+          title: '관리비 문의',
+          status: 'in_progress',
+          priority: 'medium',
+          assignee: 'staff_002',
+          createdAt: new Date(Date.now() - 1000 * 60 * 90).toISOString()
+        }
+      ]
+    }));
+    return;
+  }
+
+  if (pathname === '/api/risk/dashboard') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({
+      riskScore: 23,
+      alerts: [],
+      trends: { increasing: false }
+    }));
+    return;
+  }
+
   // Handle POST requests for intake endpoints
   if (req.method === 'POST' && pathname.startsWith('/api/intake/')) {
     let body = '';
