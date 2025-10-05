@@ -194,7 +194,8 @@ const server = http.createServer((req, res) => {
   if (pathname === '/api/tickets' || pathname.startsWith('/api/tickets?')) {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({
-      tickets: [
+      success: true,
+      data: [
         {
           id: 'ticket_001',
           title: '엘리베이터 고장 신고',
