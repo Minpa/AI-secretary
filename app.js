@@ -49,7 +49,7 @@ const server = http.createServer((req, res) => {
   if (pathname === '/api/version') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({
-      version: '1.0.5',
+      version: '1.0.6',
       commit: 'latest',
       buildTime: new Date().toISOString(),
       environment: process.env.NODE_ENV || 'development'
@@ -65,6 +65,31 @@ const server = http.createServer((req, res) => {
       activeTickets: 8,
       slaCompliance: 95.2,
       riskScore: 23
+    }));
+    return;
+  }
+
+  if (pathname === '/api/intake/llm/status') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({
+      success: true,
+      data: {
+        enabled: true,
+        available: true,
+        config: {
+          model: 'Mistral-7B',
+          provider: 'Ollama'
+        }
+      }
+    }));
+    return;
+  }
+
+  if (pathname === '/api/intake/llm/toggle') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({
+      success: true,
+      message: 'LLM toggled successfully'
     }));
     return;
   }
