@@ -49,7 +49,7 @@ const server = http.createServer((req, res) => {
   if (pathname === '/api/version') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({
-      version: '1.0.8',
+      version: '1.0.9',
       commit: 'latest',
       buildTime: new Date().toISOString(),
       environment: process.env.NODE_ENV || 'development'
