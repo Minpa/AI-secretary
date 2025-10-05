@@ -59,10 +59,7 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Frontend routes
-app.use('/', frontendRoutes);
-
-// API routes
+// API routes (must come before frontend routes)
 app.use('/api/intake', intakeHubRoutes);
 app.use('/api/tickets', ticketingRoutes);
 app.use('/api/ops-memory', opsMemoryRoutes);
@@ -70,6 +67,9 @@ app.use('/api/reports', reportsRoutes);
 app.use('/api/erp', erpReaderRoutes);
 app.use('/api/risk', riskBriefRoutes);
 app.use('/api/admin', adminRoutes);
+
+// Frontend routes (must come after API routes)
+app.use('/', frontendRoutes);
 
 // Error handling
 app.use(errorHandler);
