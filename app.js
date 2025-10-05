@@ -133,7 +133,7 @@ const server = http.createServer((req, res) => {
   });
 });
 
-server.listen(PORT, () => {
+server.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 AI Secretary server running on port ${PORT}`);
   console.log(`📊 Dashboard: http://localhost:${PORT}/dashboard.html`);
   console.log(`🧪 Test API: http://localhost:${PORT}/test.html`);
