@@ -49,7 +49,7 @@ const server = http.createServer((req, res) => {
   if (pathname === '/api/version') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({
-      version: '1.0.6',
+      version: '1.0.7',
       commit: 'latest',
       buildTime: new Date().toISOString(),
       environment: process.env.NODE_ENV || 'development'
@@ -125,9 +125,22 @@ const server = http.createServer((req, res) => {
   if (pathname === '/api/tickets/staff') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({
-      staff: [
-        { id: 'staff_001', name: '김관리', role: '소장', active: true },
-        { id: 'staff_002', name: '이직원', role: '관리사무소', active: true }
+      success: true,
+      data: [
+        { 
+          id: 'staff_001', 
+          name: '김관리', 
+          role: '소장', 
+          active: true,
+          specialties: ['시설관리', '민원처리', '안전관리']
+        },
+        { 
+          id: 'staff_002', 
+          name: '이직원', 
+          role: '관리사무소', 
+          active: true,
+          specialties: ['회계', '관리비', '입주민상담']
+        }
       ]
     }));
     return;
@@ -187,14 +200,24 @@ const server = http.createServer((req, res) => {
       success: true,
       data: [
         {
-          staffInfo: { id: 'staff_001', name: '김관리', role: '소장' },
+          staffInfo: { 
+            id: 'staff_001', 
+            name: '김관리', 
+            role: '소장',
+            specialties: ['시설관리', '민원처리', '안전관리']
+          },
           totalTickets: 5,
           openTickets: 2,
           inProgressTickets: 2,
           resolvedTickets: 1
         },
         {
-          staffInfo: { id: 'staff_002', name: '이직원', role: '관리사무소' },
+          staffInfo: { 
+            id: 'staff_002', 
+            name: '이직원', 
+            role: '관리사무소',
+            specialties: ['회계', '관리비', '입주민상담']
+          },
           totalTickets: 3,
           openTickets: 1,
           inProgressTickets: 1,
