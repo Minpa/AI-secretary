@@ -129,6 +129,52 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  if (pathname === '/api/intake/messages' || pathname.startsWith('/api/intake/messages?')) {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({
+      success: true,
+      data: [
+        {
+          id: 'msg_001',
+          channel: 'sms',
+          from: '010-1234-5678',
+          content: '101동 1502호 엘리베이터가 고장났어요',
+          classification: 'common_facility',
+          category: 'facility',
+          priority: 'high',
+          status: 'processed',
+          createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+          apartmentUnit: { dong: '101', ho: '1502' }
+        },
+        {
+          id: 'msg_002',
+          channel: 'web',
+          from: 'resident@example.com',
+          content: '관리비 문의드립니다',
+          classification: 'billing',
+          category: 'billing',
+          priority: 'medium',
+          status: 'assigned',
+          createdAt: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
+          apartmentUnit: { dong: '102', ho: '805' }
+        },
+        {
+          id: 'msg_003',
+          channel: 'sms',
+          from: '010-9876-5432',
+          content: '윗집 소음이 심합니다',
+          classification: 'noise',
+          category: 'noise',
+          priority: 'medium',
+          status: 'processed',
+          createdAt: new Date(Date.now() - 1000 * 60 * 90).toISOString(),
+          apartmentUnit: { dong: '103', ho: '1205' }
+        }
+      ]
+    }));
+    return;
+  }
+
   if (pathname === '/api/messages/recent') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({
@@ -274,22 +320,44 @@ const server = http.createServer((req, res) => {
     res.end(JSON.stringify({
       success: true,
       data: {
-        units: [
+        summary: {
+          totalActiveUnits: 5,
+          totalRequests: 20,
+          averageRequestsPerUnit: 4.0
+        },
+        metrics: {
+          averageRequestsPerUnit: 4.0,
+          mostActiveBuilding: '101동',
+          peakPeriod: '저녁 (18:00-22:00)'
+        },
+        topUnits: [
           {
-            apartmentUnit: { dong: '101', ho: '1502' },
+            apartmentUnit: { 
+              dong: '101', 
+              ho: '1502',
+              formatted: '101동 1502호',
+              floor: 15
+            },
+            requestCount: 12,
             totalRequests: 12,
+            primaryCategory: 'noise',
             categories: { noise: 8, facility: 3, parking: 1 },
             lastRequestDate: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString()
           },
           {
-            apartmentUnit: { dong: '102', ho: '805' },
+            apartmentUnit: { 
+              dong: '102', 
+              ho: '805',
+              formatted: '102동 805호',
+              floor: 8
+            },
+            requestCount: 8,
             totalRequests: 8,
+            primaryCategory: 'facility',
             categories: { facility: 5, noise: 2, other: 1 },
             lastRequestDate: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5).toISOString()
           }
-        ],
-        totalUnits: 2,
-        totalRequests: 20
+        ]
       }
     }));
     return;
