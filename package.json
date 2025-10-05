@@ -1,6 +1,6 @@
 {
   "name": "ai-secretary",
-  "version": "1.0.0",
+  "version": "1.0.9",
   "description": "AI Secretary for Apartment Complex Operations",
   "main": "app.js",
   "scripts": {
