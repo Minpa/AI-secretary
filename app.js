@@ -49,7 +49,7 @@ const server = http.createServer((req, res) => {
   if (pathname === '/api/version') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({
-      version: '1.0.7',
+      version: '1.0.8',
       commit: 'latest',
       buildTime: new Date().toISOString(),
       environment: process.env.NODE_ENV || 'development'
@@ -61,10 +61,45 @@ const server = http.createServer((req, res) => {
   if (pathname === '/api/intake/stats') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({
-      totalMessages: 42,
-      activeTickets: 8,
-      slaCompliance: 95.2,
-      riskScore: 23
+      success: true,
+      data: {
+        totalMessages: 42,
+        activeTickets: 8,
+        slaCompliance: 95.2,
+        riskScore: 23,
+        recentMessages: [
+          {
+            id: 'msg_001',
+            channel: 'sms',
+            sender: '010-1234-5678',
+            content: '엘리베이터가 고장났어요',
+            classification: 'common_facility',
+            priority: 'high',
+            status: 'processed',
+            createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString()
+          },
+          {
+            id: 'msg_002',
+            channel: 'web',
+            sender: '입주민',
+            content: '관리비 문의드립니다',
+            classification: 'billing',
+            priority: 'medium',
+            status: 'assigned',
+            createdAt: new Date(Date.now() - 1000 * 60 * 60).toISOString()
+          },
+          {
+            id: 'msg_003',
+            channel: 'email',
+            sender: 'resident@example.com',
+            content: '주차 문제 해결 요청',
+            classification: 'parking',
+            priority: 'medium',
+            status: 'open',
+            createdAt: new Date(Date.now() - 1000 * 60 * 90).toISOString()
+          }
+        ]
+      }
     }));
     return;
   }
