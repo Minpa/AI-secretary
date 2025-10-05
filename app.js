@@ -38,6 +38,20 @@ const server = http.createServer((req, res) => {
     res.end(JSON.stringify({
       status: 'healthy',
       timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || 'development',
+      version: '1.0.3',
+      commit: '4f4593c'
+    }));
+    return;
+  }
+
+  // Version endpoint
+  if (pathname === '/api/version') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({
+      version: '1.0.3',
+      commit: '4f4593c',
+      buildTime: new Date().toISOString(),
       environment: process.env.NODE_ENV || 'development'
     }));
     return;
@@ -132,9 +146,12 @@ const server = http.createServer((req, res) => {
   if (pathname === '/api/risk/dashboard') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({
-      riskScore: 23,
-      alerts: [],
-      trends: { increasing: false }
+      success: true,
+      data: {
+        riskScore: 23,
+        alerts: [],
+        trends: { increasing: false }
+      }
     }));
     return;
   }

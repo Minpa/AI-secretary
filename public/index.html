@@ -121,5 +121,27 @@
             </div>
         </div>
     </footer>
+
+    <!-- Version Display -->
+    <div id="version-display" class="fixed bottom-4 left-4 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-75 hover:opacity-100 transition-opacity z-50">
+        <span id="version-text">Loading version...</span>
+    </div>
+
+    <script>
+        // Load and display version information
+        async function loadVersion() {
+            try {
+                const response = await fetch('/api/version');
+                const data = await response.json();
+                document.getElementById('version-text').textContent = `v${data.version} (${data.commit})`;
+            } catch (error) {
+                document.getElementById('version-text').textContent = 'Version: Unknown';
+            }
+        }
+        
+        // Load version on page load
+        loadVersion();
+    </script>
+
 </body>
 </html>
