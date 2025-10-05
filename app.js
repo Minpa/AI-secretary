@@ -198,18 +198,22 @@ const server = http.createServer((req, res) => {
       data: [
         {
           id: 'ticket_001',
+          number: 'TKT-001',
           title: '엘리베이터 고장 신고',
           status: 'open',
           priority: 'high',
           assignee: 'staff_001',
+          slaDeadline: new Date(Date.now() + 1000 * 60 * 60 * 2).toISOString(),
           createdAt: new Date(Date.now() - 1000 * 60 * 45).toISOString()
         },
         {
-          id: 'ticket_002', 
+          id: 'ticket_002',
+          number: 'TKT-002',
           title: '관리비 문의',
           status: 'in_progress',
           priority: 'medium',
           assignee: 'staff_002',
+          slaDeadline: new Date(Date.now() + 1000 * 60 * 60 * 4).toISOString(),
           createdAt: new Date(Date.now() - 1000 * 60 * 90).toISOString()
         }
       ]
@@ -260,6 +264,45 @@ const server = http.createServer((req, res) => {
           resolvedTickets: 1
         }
       ]
+    }));
+    return;
+  }
+
+  // Reports endpoints
+  if (pathname === '/api/reports/units/analytics' || pathname.startsWith('/api/reports/units/analytics?')) {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({
+      success: true,
+      data: {
+        units: [
+          {
+            apartmentUnit: { dong: '101', ho: '1502' },
+            totalRequests: 12,
+            categories: { noise: 8, facility: 3, parking: 1 },
+            lastRequestDate: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString()
+          },
+          {
+            apartmentUnit: { dong: '102', ho: '805' },
+            totalRequests: 8,
+            categories: { facility: 5, noise: 2, other: 1 },
+            lastRequestDate: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5).toISOString()
+          }
+        ],
+        totalUnits: 2,
+        totalRequests: 20
+      }
+    }));
+    return;
+  }
+
+  if (pathname.startsWith('/api/reports/units/') && pathname.includes('/history')) {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({
+      success: true,
+      data: {
+        requests: [],
+        pagination: { page: 1, limit: 10, total: 0 }
+      }
     }));
     return;
   }
