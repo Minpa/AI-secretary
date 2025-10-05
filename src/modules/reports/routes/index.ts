@@ -16,14 +16,14 @@ router.get('/analytics/summary', reportController.getAnalyticsSummary);
 router.get('/analytics/trends', reportController.getTrends);
 router.get('/keyword-analysis', reportController.getKeywordAnalysis);
 
-// Generic ID-based routes (must be after specific routes)
-router.get('/:id', reportController.getReport);
-router.get('/:id/download', reportController.downloadReport);
-
-// Unit analytics endpoints
+// Unit analytics endpoints (must be before /:id route)
 router.get('/units/analytics', unitAnalyticsController.getUnitAnalytics.bind(unitAnalyticsController));
 router.get('/units/:dong/:ho/history', unitAnalyticsController.getUnitHistory.bind(unitAnalyticsController));
 router.get('/units/export', unitAnalyticsController.exportUnitAnalytics.bind(unitAnalyticsController));
+
+// Generic ID-based routes (must be after specific routes)
+router.get('/:id', reportController.getReport);
+router.get('/:id/download', reportController.downloadReport);
 
 // Cache management endpoints
 router.get('/cache/stats', cacheMetricsController.getCacheStats.bind(cacheMetricsController));
